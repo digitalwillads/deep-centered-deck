@@ -1,0 +1,130 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep Centered Product Line Profit Model</title>
+<style>
+:root{--ink:#0f172a;--muted:#64748b;--line:#e5e9f0;--bg:#f1f5f9;--card:#fff;--accent:#2563eb;--good:#16a34a;--warn:#d97706;--bad:#dc2626;--badbg:#fef2f2;--goodbg:#f0fdf4;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);overflow:hidden;-webkit-font-smoothing:antialiased;}
+.deck{height:100vh;width:100vw;position:relative;}
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .25s ease;display:flex;flex-direction:column;justify-content:center;
+  padding:5vh 6vw;max-width:1560px;margin:0 auto;}
+.slide.active{opacity:1;visibility:visible;}
+h1{font-size:clamp(22px,2.6vw,36px);line-height:1.08;letter-spacing:-.02em;margin-bottom:20px;}
+h3{font-size:14px;margin-bottom:10px;color:var(--ink);font-weight:700;}
+table{width:100%;border-collapse:collapse;font-size:clamp(12px,1vw,14px);}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;padding:8px 10px;border-bottom:2px solid var(--line);}
+td{padding:7px 10px;border-bottom:1px solid var(--line);}
+.num{text-align:right;font-variant-numeric:tabular-nums;}
+.term{font-weight:600;} .camp{color:var(--muted);font-size:.92em;}
+.note{font-size:12.5px;color:var(--muted);margin-top:14px;line-height:1.45;max-width:80ch;}
+.panel{border-radius:14px;padding:16px 18px;}
+.panel.act{background:#eff6ff;border:1px solid #bfdbfe;}
+.steps{list-style:none;}
+.steps li{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:13.5px;line-height:1.45;}
+.steps li:last-child{border:none}
+.stepn{flex:0 0 22px;width:22px;height:22px;line-height:22px;text-align:center;border-radius:6px;background:var(--accent);color:#fff;font-weight:700;font-size:12px;}
+.kpistrip{display:flex;gap:12px;margin:8px 0 20px;flex-wrap:wrap;}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 20px;min-width:118px;}
+.stat .v{font-size:26px;font-weight:750;letter-spacing:-.02em;line-height:1;}
+.stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:5px;}
+.v.good{color:var(--good)} .v.warn{color:var(--warn)}
+.bar{position:fixed;bottom:18px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:18px;z-index:20;}
+.bar button.arr{background:var(--card);border:1px solid var(--line);width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.bar button.arr:hover{border-color:var(--accent);color:var(--accent);}
+.dots{display:flex;gap:8px;}
+.dot{width:9px;height:9px;border-radius:50%;border:none;background:#cbd5e1;cursor:pointer;padding:0;}
+.dot.on{background:var(--accent);transform:scale(1.25);}
+.count{position:fixed;top:22px;right:30px;font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.05em;z-index:20;}
+.brand{position:fixed;top:22px;left:30px;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase;z-index:20;}
+/* model slide */
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start;}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
+.pcard h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:12px;}
+.knob{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 0;}
+.knob label{font-size:12.5px;color:var(--ink);line-height:1.3;}
+.knob input{width:96px;text-align:right;font:inherit;font-size:13px;font-weight:600;padding:5px 8px;border:1px solid #fde68a;background:#fefce8;border-radius:8px;font-variant-numeric:tabular-nums;}
+.knob input:focus{outline:2px solid var(--accent);outline-offset:-1px;}
+.chip{font-size:10px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:.04em;}
+.outrow{display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-top:1px solid var(--line);color:var(--muted);}
+.outrow .ov{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;}
+.outrow.big{background:var(--goodbg);margin:6px -18px -16px;padding:10px 18px 12px;border-radius:0 0 14px 14px;border-top:2px solid #bbf7d0;}
+.outrow.big span:first-child{color:var(--ink);font-weight:700;}
+.outrow.big .ov{color:var(--good);font-size:16px;}
+.divider{margin-top:10px;}
+@media(max-width:900px){.cols3{grid-template-columns:1fr}}
+</style></head>
+<body>
+<div class="brand">Deep Centered &middot; Product Line Profit Model</div>
+<div class="deck">
+
+
+<section class="slide active">
+  <h1>The model. Yellow cells are yours to change.</h1>
+  <div class="cols3">
+    <div class="pcard" id="c_th"></div>
+    <div class="pcard" id="c_tm"></div>
+    <div class="pcard" id="c_sp"></div>
+  </div>
+</section>
+
+
+
+</div>
+<script>
+const DEFAULTS = {
+  th: {name:'Therapy',  spend:15000, cpl:78,  rate:30, rev:1200,  prof:800,  confirm:false},
+  tm: {name:'TMS',      spend:9000,  cpl:350, rate:25, rev:10000, prof:6000, confirm:true},
+  sp: {name:'Spravato', spend:8250,  cpl:290, rate:25, rev:10000, prof:6000, confirm:true},
+};
+let state = JSON.parse(JSON.stringify(DEFAULTS));
+const $ = id => document.getElementById(id);
+const money = n => isFinite(n) ? '$' + Math.round(n).toLocaleString('en-US') : '—';
+const MONEY_FIELDS = ['spend','cpl','rev','prof'];
+const fmtField = (k, v) => MONEY_FIELDS.includes(k) ? money(v) : v + '%';
+const KNOBS = [
+  ['spend', 'Ad spend per month'],
+  ['cpl',   'Lead price (what Google charges)'],
+  ['rate',  '% of leads that become patients'],
+  ['rev',   'Revenue one patient brings'],
+  ['prof',  'Profit one patient brings'],
+];
+function calc(p){
+  const leads = p.spend / p.cpl;
+  const patients = leads * p.rate / 100;
+  const after = patients * p.prof - p.spend;
+  return {leads, patients, costPer: p.spend / patients, after, breakeven: p.prof * p.rate / 100};
+}
+function buildCard(key){
+  const p = state[key];
+  $('c_' + key).innerHTML = '<h3>' + p.name + '</h3>'
+    + KNOBS.map(([k, label]) => '<div class="knob"><label>' + label + '</label>'
+      + '<input inputmode="decimal" data-key="' + key + '" data-field="' + k + '" value="' + fmtField(k, p[k]) + '"></div>').join('')
+    + '<div class="divider"></div>'
+    + '<div class="outrow"><span>Leads per month</span><span class="ov" id="o_' + key + '_leads"></span></div>'
+    + '<div class="outrow"><span>New patients per month</span><span class="ov" id="o_' + key + '_pat"></span></div>'
+    + '<div class="outrow"><span>Cost to win one patient</span><span class="ov" id="o_' + key + '_cpp"></span></div>'
+    + '<div class="outrow"><span>Highest lead price before it loses money</span><span class="ov" id="o_' + key + '_be"></span></div>'
+    + '<div class="outrow big"><span>Profit after paying for ads</span><span class="ov" id="o_' + key + '_after"></span></div>';
+}
+function render(){
+  for (const key of ['th','tm','sp']){
+    const r = calc(state[key]);
+    $('o_'+key+'_leads').textContent = Math.round(r.leads);
+    $('o_'+key+'_pat').textContent = Math.round(r.patients);
+    $('o_'+key+'_cpp').textContent = money(r.costPer);
+    $('o_'+key+'_be').textContent = money(r.breakeven);
+    $('o_'+key+'_after').textContent = money(r.after);
+  }
+}
+['th','tm','sp'].forEach(buildCard);
+document.querySelectorAll('.knob input').forEach(inp => {
+  const parse = () => parseFloat(inp.value.replace(/[^0-9.]/g, ''));
+  inp.addEventListener('input', () => { const v = parse(); if (isFinite(v) && v > 0) { state[inp.dataset.key][inp.dataset.field] = v; render(); } });
+  inp.addEventListener('focus', () => { inp.value = state[inp.dataset.key][inp.dataset.field]; inp.select(); });
+  inp.addEventListener('blur',  () => { inp.value = fmtField(inp.dataset.field, state[inp.dataset.key][inp.dataset.field]); });
+});
+render();
+
+</script>
+</body></html>
