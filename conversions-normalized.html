@@ -160,17 +160,18 @@
       </div></section>
 
       <section class="panel"><div class="slide dense">
-        <div class="eyebrow">The five actions on the campaign</div>
-        <h1>Three of the five are phone events.</h1>
+        <div class="eyebrow">Pulled from the account &middot; August 1 to 28</div>
+        <h1>One action carries all the bidding.</h1>
         <table>
-          <tr><th>Conversion action</th><th>What it fires on</th><th>A real patient?</th><th>Verdict</th></tr>
-          <tr><td><b>DCMH Leads- What converts</b></td><td class="dim">WhatConverts offline import of the qualified lead</td><td>Yes</td><td><span class="tag ok">The primary</span></td></tr>
-          <tr><td>DCMH Lead Form</td><td class="dim">Form submitted on the site</td><td>Yes</td><td><span class="tag ok">Keep</span></td></tr>
-          <tr><td>DCMH Phone Call Conversion</td><td class="dim">A tracked call connects</td><td>Yes</td><td><span class="tag ok">Keep, secondary</span></td></tr>
-          <tr><td>Calls from ads</td><td class="dim">Call placed from the ad call asset, past a duration</td><td>Usually</td><td><span class="tag ok">Keep, secondary</span></td></tr>
-          <tr class="hi"><td><b>DCMH Click To Call</b></td><td class="dim">A tap on a phone link. No conversation required.</td><td><b>No</b></td><td><span class="tag no">Never primary</span></td></tr>
+          <tr><th>Conversion action</th><th class="r">Recorded</th><th class="r">Counts for bidding</th><th>Setting in the account</th></tr>
+          <tr class="hi"><td><b>DCMH Leads- What converts</b></td><td class="r"><b>130</b></td><td class="r"><b>130</b></td><td class="dim">primary, one per click, 60 day window</td></tr>
+          <tr><td>DCMH Click To Call</td><td class="r">80</td><td class="r">0</td><td class="dim">observation only, not primary</td></tr>
+          <tr><td>DCMH Lead Form</td><td class="r">73</td><td class="r">0</td><td class="dim">observation only, not primary</td></tr>
+          <tr><td>DCMH Phone Call Conversion</td><td class="r">6</td><td class="r">0</td><td class="dim">observation only, not primary</td></tr>
+          <tr><td>Calls from ads</td><td class="r">5</td><td class="r">0</td><td class="dim">observation only, not primary</td></tr>
+          <tr><td class="dim"><b>Total</b></td><td class="r"><b>294</b></td><td class="r"><b>130</b></td><td class="dim">&nbsp;</td></tr>
         </table>
-        <div class="kicker">You were right to say do not go by the name. <b>These readings are from the action names and require event confirmation in the account.</b> But the shape is already a problem: three phone actions sit alongside WhatConverts, which imports calls as well. <b>One call can be counted twice</b>, once by Google and once by WhatConverts.</div>
+        <div class="kicker">The good news first: <b>nothing is double counted</b>. Only one of the five reaches the bidder. That is also the exposure. <b>Every bid this campaign makes rests on one WhatConverts upload, and Google is rejecting about 60% of those uploads.</b> The other 164 events are recorded and ignored.</div>
       </div></section>
 
       <section class="panel"><div class="slide dense">
@@ -208,11 +209,11 @@
 
       <section class="panel"><div class="slide dense">
         <div class="eyebrow">Before we set a target</div>
-        <h1>Three things are still not verified.</h1>
+        <h1>Two settings to change, one thing still unknown.</h1>
         <ol>
-          <li><b>The action to event mapping is still not written down.</b> You asked for it on July 30. The table on slide two is read from names, not from the events behind them. We confirm each in the account and send you the list.</li>
-          <li><b>Nobody has pulled the dates conversion tracking changed.</b> Until we do, we cannot say whether the page view action was still live in Q1 2026, so <b>the $76 carries an asterisk</b>.</li>
-          <li><b>Google is accepting only 39.5% of the lead uploads.</b> Today's normalized count is understated. Fix the delivery first, then the number means something.</li>
+          <li><b>Confirmed in the account: the counted action is set to one per click on a 60 day window.</b> That is exactly what produces the rejections. Widen it to 90 days and count every lead per click. One change each, Monday morning.</li>
+          <li><b>Confirmed: Google accepts only 39.5% of those uploads.</b> Because this single action carries the whole bidding signal, every rejected upload is a lead the bidder never sees. Fix this before setting any target.</li>
+          <li><b>Still unknown: nobody has pulled the dates conversion tracking changed.</b> Until we do, we cannot say whether the page view action was still live in Q1 2026, so <b>the $76 on the previous slide carries an asterisk</b>.</li>
         </ol>
         <div class="kicker">Order matters. <b>Fix delivery, write the mapping, then set a target cost per lead.</b> A target set on top of a double counted, under delivered number will throttle the campaign for the wrong reason. Nothing moves until you approve it.</div>
         <div class="meta">Digital Will Ads &middot; prepared by Will Arnett &middot; August 29, 2026</div>
