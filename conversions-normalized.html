@@ -1,290 +1,661 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Deep Centered, Conversion Actions Normalized, August 29 2026</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deep Centered &middot; Conversions Normalized &middot; Aug 30 2026</title>
+<!-- Deep Centered / New Deep Eddy (9117339135). 4 slides: what counts / then vs now / delay / do and don't.
+     Google Ads API v22 + WhatConverts API v1 (account 81543), 1 May - 28 Aug 2026.
+     House rule: no paragraphs. Pictures and short words. -->
 <style>
-  :root{
-    --ink:#0C2A28;--muted:#5E726E;--faint:#9AA8A4;--line:#DAE6E1;
-    --teal:#0F766E;--teal-deep:#134E4A;--teal-wash:#E7F1EF;--track:#E4EDEA;
-    --amber:#B4791A;--amber-deep:#8A5B12;
-    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:#EAF1EE;color:var(--ink);font-family:var(--sans);
-    -webkit-font-smoothing:antialiased;overflow:hidden}
-
-  /* ---- deck mechanics ---- */
-  .viewport{position:fixed;inset:0;overflow:hidden}
-  .track{display:flex;height:100%;width:100%;
-    transition:transform .42s cubic-bezier(.22,1,.36,1)}
-  .panel{flex:0 0 100%;height:100%;display:flex;align-items:center;justify-content:center;
-    padding:40px 24px}
-
-  /* ---- shared slide card ---- */
-  .slide{width:100%;max-width:960px;aspect-ratio:16/9;background:#fff;border-radius:20px;
-    border:1px solid var(--line);box-shadow:0 20px 50px -20px rgba(12,42,40,.28);
-    padding:52px 60px;display:flex;flex-direction:column;justify-content:center;gap:20px}
-  .eyebrow{font-size:14px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);flex:none}
-  h1{margin:0;font-size:48px;font-weight:800;letter-spacing:-.03em;line-height:1;flex:none}
-  .stat{display:flex;align-items:baseline;gap:16px;flex:none}
-  .big{font-size:76px;font-weight:800;letter-spacing:-.04em;line-height:.85;
-    color:var(--teal-deep);font-variant-numeric:tabular-nums}
-  .stat .cap{font-size:18px;color:var(--muted);font-weight:500;max-width:20ch;line-height:1.3}
-  .cap.teal b{color:var(--teal);font-weight:700}
-  .cap.amber b{color:var(--amber-deep);font-weight:700}
-  .bar{flex:none;height:22px;border-radius:11px;background:var(--track);overflow:hidden;display:flex;gap:2px}
-  .bar>.seg{height:100%}
-  .seg.captured{background:linear-gradient(180deg,#12897F,var(--teal))}
-  .seg.budget{background:repeating-linear-gradient(-45deg,#D69A34,#D69A34 7px,#C88A26 7px,#C88A26 14px)}
-  .barnote{flex:none;font-size:13px;color:var(--faint);font-variant-numeric:tabular-nums}
-  .barnote b{color:var(--amber-deep);font-weight:700}
-  ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;flex:none}
-  li{font-size:22px;line-height:1.3;padding-left:32px;position:relative;font-weight:500}
-  li::before{content:"";position:absolute;left:2px;top:.6em;width:12px;height:12px;border-radius:4px;background:var(--teal)}
-  li b{font-weight:800}
-  .note{font-size:13.5px;color:var(--faint);line-height:1.45;flex:none}
-
-  /* ---- cost-per-lead comparison ---- */
-  .compare{display:flex;flex-direction:column;gap:14px;flex:none}
-  .cmp-row{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:16px}
-  .cmp-label{font-size:15.5px;font-weight:700;color:var(--muted);line-height:1.2;text-align:right}
-  .cmp-label small{display:block;font-weight:500;color:var(--faint);font-size:12.5px}
-  .cmp-bar{height:44px;border-radius:10px;display:flex;align-items:center;
-    padding:0 16px;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .cmp-bar.old{background:var(--track);color:var(--muted)}
-  .cmp-bar.new{background:linear-gradient(180deg,#12897F,var(--teal));color:#fff}
-  .cmp-bar small{font-size:14px;font-weight:600;margin-left:8px;opacity:.85}
-
-  /* ---- controls ---- */
-  .hud{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
-    display:flex;align-items:center;gap:14px;z-index:10;
-    background:rgba(255,255,255,.85);backdrop-filter:blur(8px);
-    border:1px solid var(--line);border-radius:999px;padding:7px 10px;
-    box-shadow:0 6px 20px -8px rgba(12,42,40,.25)}
-  .nav-btn{border:none;background:var(--teal-wash);color:var(--teal-deep);
-    width:34px;height:34px;border-radius:50%;font-size:17px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;transition:background .15s}
-  .nav-btn:hover{background:#D6E8E3}
-  .nav-btn:disabled{opacity:.35;cursor:default}
-  .nav-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-  .dots{display:flex;gap:8px;padding:0 4px}
-  .dot{width:9px;height:9px;border-radius:50%;background:#C7D6D1;border:none;padding:0;cursor:pointer;transition:background .15s,transform .15s}
-  .dot.on{background:var(--teal);transform:scale(1.25)}
-  .dot:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-  .count{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;font-weight:600;min-width:34px;text-align:center}
-  .hint{position:fixed;bottom:24px;right:20px;font-size:11.5px;color:var(--faint);z-index:10}
-
-  @media (prefers-reduced-motion:reduce){.track{transition:none}}
-  @media (max-width:640px){
-    .panel{padding:20px 14px}
-    .slide{aspect-ratio:auto;padding:34px 26px}
-    h1{font-size:34px}.big{font-size:54px}li{font-size:18px}
-    .cmp-row{grid-template-columns:110px 1fr}
-    .hint{display:none}
+  :root {
+    --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --bg: #ffffff;
+    --surface: #f8f8f8;
+    --surface2: #f0f0f0;
+    --border: rgba(0, 0, 0, 0.08);
+    --border-bright: rgba(0, 0, 0, 0.16);
+    --text: #111111;
+    --text-dim: #5c5c5c;
+    --accent: #2a78d6;
+    --accent-dim: rgba(42, 120, 214, 0.07);
+    --muted-ink: #898781;
+    --good: #006300;
+    --critical: #d03b3b;
   }
 
-  /* ---- export mode (?export=N): one slide, edge-to-edge, for PNG capture ---- */
-  body.export{background:#fff}
-  body.export .hud,body.export .hint{display:none}
-  body.export .track{transition:none;display:block}
-  body.export .panel{display:none;padding:0}
-  body.export .panel.export-on{display:flex;position:fixed;inset:0}
-  body.export .slide{max-width:none;width:960px;height:540px;aspect-ratio:auto;
-    border-radius:0;border:none;box-shadow:none;
-    transform:scale(2);transform-origin:center center}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    color: var(--text);
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  /* ============ DECK ENGINE ============ */
+  .deck {
+    height: 100dvh;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  .slide {
+    height: 100dvh;
+    scroll-snap-align: start;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(40px, 6vh, 80px) clamp(40px, 8vw, 120px);
+    isolation: isolate;
+    opacity: 0;
+    transform: translateY(40px) scale(0.98);
+    transition:
+      opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .slide.visible { opacity: 1; transform: none; }
+  .slide .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .slide.visible .reveal { opacity: 1; transform: none; }
+  .slide.visible .reveal:nth-child(1) { transition-delay: 0.1s; }
+  .slide.visible .reveal:nth-child(2) { transition-delay: 0.2s; }
+  .slide.visible .reveal:nth-child(3) { transition-delay: 0.3s; }
+  .slide.visible .reveal:nth-child(4) { transition-delay: 0.4s; }
+  .slide.visible .reveal:nth-child(5) { transition-delay: 0.5s; }
+  .slide.visible .reveal:nth-child(6) { transition-delay: 0.6s; }
+  @media (prefers-reduced-motion: reduce) {
+    .slide, .slide .reveal {
+      opacity: 1 !important; transform: none !important; transition: none !important;
+    }
+    .deck { scroll-behavior: auto; }
+  }
+
+  .slide--with-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ============ NAV CHROME ============ */
+  .deck-progress {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--accent); z-index: 100;
+    transition: width 0.3s ease; pointer-events: none;
+  }
+  .deck-dots {
+    position: fixed; right: clamp(12px, 2vw, 24px); top: 50%;
+    transform: translateY(-50%); display: flex; flex-direction: column;
+    gap: 8px; z-index: 100; padding: 8px;
+    background: color-mix(in srgb, var(--bg) 60%, transparent 40%);
+    border-radius: 20px;
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  }
+  .deck-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-dim); opacity: 0.3; border: none; padding: 0;
+    cursor: pointer; transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .deck-dot:hover { opacity: 0.6; }
+  .deck-dot.active { opacity: 1; transform: scale(1.5); background: var(--accent); }
+  .deck-counter {
+    position: fixed; bottom: clamp(12px, 2vh, 24px); right: clamp(12px, 2vw, 24px);
+    font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);
+    z-index: 100; font-variant-numeric: tabular-nums;
+  }
+  .deck-hints {
+    position: fixed; bottom: clamp(12px, 2vh, 24px); left: 50%;
+    transform: translateX(-50%); font-family: var(--font-mono);
+    font-size: 11px; color: var(--text-dim); opacity: 0.6; z-index: 100;
+    transition: opacity 0.5s ease; white-space: nowrap;
+  }
+  .deck-hints.faded { opacity: 0; pointer-events: none; }
+
+  /* ============ SHARED ============ */
+  .slide__display {
+    font-size: clamp(44px, 8vw, 104px);
+    font-weight: 800;
+    letter-spacing: -2.5px;
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+  .slide__heading {
+    font-size: clamp(26px, 4.5vw, 46px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+  .slide__body {
+    font-size: clamp(16px, 2vw, 22px);
+    line-height: 1.55;
+    color: var(--text-dim);
+    text-wrap: pretty;
+    max-width: 62ch;
+  }
+  .slide__subtitle {
+    font-family: var(--font-mono);
+    font-size: clamp(12px, 1.4vw, 16px);
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+  .slide__label {
+    font-family: var(--font-mono);
+    font-size: clamp(10px, 1.2vw, 13px);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  .slide--title { justify-content: center; align-items: center; text-align: center; }
+
+  .slide__kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(clamp(150px, 20vw, 230px), 1fr));
+    gap: clamp(12px, 2vw, 24px);
+  }
+  .slide__kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: clamp(16px, 3vh, 30px) clamp(16px, 2vw, 24px);
+    min-width: 0;
+    overflow: hidden;
+  }
+  .slide__kpi-val {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .slide__kpi-label {
+    font-family: var(--font-mono);
+    font-size: clamp(9px, 1.2vw, 13px);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+  .slide__kpi-trend { font-family: var(--font-mono); font-size: 13px; margin-top: 5px; color: var(--text-dim); }
+
+  .slide--table { padding: clamp(24px, 4vh, 48px) clamp(24px, 4vw, 60px); }
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .table-scroll { overflow-x: auto; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    background: var(--surface2);
+    font-family: var(--font-mono);
+    font-size: clamp(10px, 1.2vw, 13px);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    text-align: left;
+    padding: clamp(9px, 1.4vh, 14px) clamp(14px, 2vw, 24px);
+    border-bottom: 2px solid var(--border-bright);
+    white-space: nowrap;
+  }
+  .data-table th.num, .data-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .data-table td {
+    padding: clamp(9px, 1.4vh, 14px) clamp(14px, 2vw, 24px);
+    border-bottom: 1px solid var(--border);
+    font-size: clamp(14px, 1.7vw, 19px);
+    vertical-align: top;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:nth-child(even) { background: var(--surface2); }
+  .tfoot-note {
+    font-family: var(--font-mono);
+    font-size: clamp(10px, 1.2vw, 13px);
+    color: var(--muted-ink);
+    padding-top: 10px;
+    line-height: 1.5;
+  }
+
+  .step-list { list-style: none; counter-reset: step; max-width: 70ch; }
+  .step-list li {
+    counter-increment: step;
+    display: flex;
+    gap: 18px;
+    align-items: baseline;
+    padding: clamp(10px, 1.8vh, 18px) 0;
+    border-bottom: 1px solid var(--border);
+    font-size: clamp(16px, 2vw, 21px);
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before {
+    content: counter(step);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(14px, 1.6vw, 18px);
+    color: var(--accent);
+    flex: 0 0 auto;
+  }
+
+  /* ============ PRINT / PDF: one slide per 16:9 page ============ */
+  @page { size: 13.333in 7.5in; margin: 0; }
+  @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { overflow: visible; }
+    .deck { height: auto; overflow: visible; scroll-snap-type: none; }
+    .slide {
+      height: 100vh !important;
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+      page-break-after: always;
+      break-after: page;
+    }
+    .slide:last-child { page-break-after: auto; break-after: auto; }
+    .slide .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .deck-progress, .deck-dots, .deck-counter, .deck-hints { display: none !important; }
+  }
+</style><style>
+  .tw-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2.2vw,30px); align-items:start; }
+  .tw-col { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:clamp(12px,1.8vh,18px) clamp(13px,1.6vw,20px); min-width:0; overflow:hidden; }
+  .tw-col--kill { border-top:3px solid var(--critical); }
+  .tw-col--keep { border-top:3px solid var(--good); }
+  .tw-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:9px; }
+  .tw-title { font-size:clamp(16px,2vw,23px); font-weight:700; letter-spacing:-.4px; }
+  .tw-sum { font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,12px); color:var(--text-dim); }
+  .tw-list { list-style:none; margin:0; padding:0; column-count:2; column-gap:clamp(10px,1.3vw,18px); }
+  .tw-list li { display:flex; align-items:baseline; gap:6px; padding:2.5px 0; border-bottom:1px solid var(--border);
+    font-size:clamp(10px,1.02vw,13px); line-height:1.3; break-inside:avoid; -webkit-column-break-inside:avoid; }
+  .tw-term { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tw-cost { font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--text-dim); font-size:.92em; }
+  .tw-badge { font-family:var(--font-mono); font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:1.5px 5px; border-radius:20px; white-space:nowrap; background:rgba(0,99,0,.1); color:var(--good); }
+  /* chips row */
+  .chiprow { display:flex; gap:clamp(8px,1.2vw,16px); flex-wrap:wrap; margin-top:clamp(10px,1.6vh,16px); }
+  .chipcard { flex:1 1 0; min-width:150px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:9px 12px; }
+  .chipcard b { display:block; font-family:var(--font-mono); font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:3px; }
+  .chipcard span { font-size:clamp(12px,1.3vw,15px); font-weight:600; }
+  .chipcard em { font-style:normal; font-family:var(--font-mono); font-size:10.5px; color:var(--muted-ink); display:block; margin-top:2px; }
+  .caveats { display:flex; gap:7px; flex-wrap:wrap; margin-top:clamp(8px,1.3vh,14px); }
+  .caveat { font-family:var(--font-mono); font-size:clamp(9px,1vw,11px); color:var(--muted-ink); background:var(--surface2); border-radius:20px; padding:3px 10px; }
+  /* viz */
+  .viz { --s1:#2a78d6; --s2:#eb6834; position:relative; }
+  .viz svg { width:100%; height:auto; display:block; overflow:visible; }
+  .viz .grid { stroke:var(--border); stroke-width:1; }
+  .viz .axis { stroke:var(--border-bright); stroke-width:1; }
+  .viz .tick { font-family:var(--font-mono); font-size:11px; fill:var(--text-dim); }
+  .viz .axlabel { font-family:var(--font-mono); font-size:10px; fill:var(--muted-ink); text-transform:uppercase; letter-spacing:1.2px; }
+  .viz .ln { fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .viz .mk { stroke:var(--bg); stroke-width:2; }
+  .viz .dlabel { font-size:13px; font-weight:700; }
+  .viz .dsub { font-family:var(--font-mono); font-size:10px; fill:var(--text-dim); }
+  .viz .nowline { stroke:var(--muted-ink); stroke-width:1; stroke-dasharray:3 3; }
+  .viz .hoverline { stroke:var(--border-bright); stroke-width:1; opacity:0; pointer-events:none; }
+  .viz .hovermk { opacity:0; pointer-events:none; stroke:var(--bg); stroke-width:2; }
+  .viz-legend { display:flex; gap:18px; margin:0 0 4px; font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,12px); color:var(--text-dim); }
+  .viz-legend span { display:inline-flex; align-items:center; gap:7px; }
+  .viz-legend i { width:14px; height:3px; border-radius:2px; display:inline-block; }
+  .viz-tip { position:absolute; pointer-events:none; opacity:0; transition:opacity .12s ease; background:var(--bg);
+    border:1px solid var(--border-bright); border-radius:9px; padding:8px 10px; font-family:var(--font-mono);
+    font-size:11px; line-height:1.5; color:var(--text); box-shadow:0 4px 14px rgba(0,0,0,.10); white-space:nowrap; z-index:5; }
+  .viz-tip .r { display:flex; align-items:center; gap:6px; margin-top:3px; }
+  .viz-tip .r i { width:9px; height:9px; border-radius:50%; display:inline-block; flex:0 0 auto; }
+  .viz-tip .v { margin-left:auto; padding-left:14px; font-variant-numeric:tabular-nums; }
+  .kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:clamp(9px,1.3vw,16px); margin-bottom:clamp(9px,1.4vh,15px); }
+  .kpi-row .slide__kpi { padding:clamp(10px,1.6vh,16px) clamp(11px,1.4vw,17px); }
+  .kpi-row .slide__kpi-val { font-size:clamp(22px,3.2vw,38px); }
+  /* split slide */
+  .volbar { display:flex; height:clamp(38px,5.5vh,58px); border-radius:10px; overflow:hidden; border:1px solid var(--border); }
+  .volbar div { display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:700; color:#fff; font-size:clamp(11px,1.3vw,15px); white-space:nowrap; }
+  .volbar .vb-core { background:var(--accent); }
+  .volbar .vb-head { background:#eb6834; }
+  .vol-caps { display:flex; justify-content:space-between; margin-top:5px; font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,12px); color:var(--text-dim); }
+  .ratio { text-align:center; font-size:clamp(20px,3vw,34px); font-weight:800; letter-spacing:-1px; margin:clamp(8px,1.3vh,14px) 0 clamp(10px,1.6vh,18px); }
+  .ratio small { display:block; font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,12px); font-weight:600; letter-spacing:1.2px; text-transform:uppercase; color:var(--text-dim); margin-top:3px; }
+  .sp-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2.2vw,30px); align-items:start; }
+  .sp-col { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:clamp(12px,1.8vh,18px) clamp(13px,1.6vw,20px); }
+  .sp-col--own { border-top:3px solid var(--accent); }
+  .sp-col--test { border-top:3px solid #eb6834; }
+  .sp-kicker { font-family:var(--font-mono); font-size:clamp(9px,1vw,11.5px); font-weight:700; text-transform:uppercase; letter-spacing:1.4px; margin-bottom:4px; }
+  .sp-name { font-size:clamp(17px,2.2vw,26px); font-weight:700; letter-spacing:-.5px; line-height:1.15; margin-bottom:9px; }
+  .sp-facts { list-style:none; margin:0 0 10px; padding:0; }
+  .sp-facts li { display:flex; align-items:baseline; gap:9px; padding:5px 0; border-bottom:1px solid var(--border); font-size:clamp(12px,1.35vw,16px); font-weight:600; }
+  .sp-facts li:last-child { border-bottom:none; }
+  .sp-facts b { font-family:var(--font-mono); font-size:9px; text-transform:uppercase; letter-spacing:.9px; color:var(--text-dim); width:44px; flex:0 0 auto; font-weight:700; }
+  .sp-facts .bad { color:var(--critical); }
+  .sp-facts .good { color:var(--good); }
+  .sp-chip { font-family:var(--font-mono); font-size:9.5px; background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:2px 7px; color:var(--text-dim); white-space:nowrap; display:inline-block; margin:0 3px 3px 0; }
+</style>
+<style>
+  .spendbar { display:flex; height:clamp(44px,6.5vh,66px); border-radius:10px; overflow:hidden; border:1px solid var(--border); }
+  .spendbar .sg { display:flex; align-items:center; justify-content:center; }
+  .spendbar .sg span { font-family:var(--font-mono); font-weight:700; color:#fff; font-size:clamp(11px,1.3vw,15px); }
+  .sgkeys { display:flex; gap:clamp(8px,1.2vw,16px); margin-top:10px; flex-wrap:wrap; }
+  .sgkey { flex:1 1 0; min-width:118px; }
+  .sgkey i { width:11px; height:11px; border-radius:3px; display:inline-block; vertical-align:-1px; margin-right:6px; }
+  .sgkey b { font-size:clamp(12px,1.35vw,16px); font-weight:700; }
+  .sgkey span { display:block; font-family:var(--font-mono); font-size:clamp(10px,1.1vw,12.5px); color:var(--text-dim); margin:2px 0 0 17px; }
+  .sgkey em { display:block; font-style:normal; font-family:var(--font-mono); font-size:clamp(9px,1vw,11px); color:var(--muted-ink); margin-left:17px; }
+  .causebox { display:grid; grid-template-columns:auto 1fr; gap:clamp(14px,2vw,28px); align-items:center;
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:clamp(12px,1.8vh,18px) clamp(14px,1.8vw,22px); margin-top:clamp(12px,1.8vh,18px); }
+  .causebig { font-size:clamp(34px,5.5vw,64px); font-weight:800; letter-spacing:-2px; line-height:1; color:var(--critical); }
+  .causebig small { display:block; font-family:var(--font-mono); font-size:clamp(9px,1.05vw,12px); font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--text-dim); margin-top:4px; }
+  .mktbars { display:flex; flex-direction:column; gap:7px; }
+  .mktrow { display:flex; align-items:center; gap:10px; }
+  .mktrow .lbl { font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,12px); color:var(--text-dim); width:78px; flex:0 0 auto; text-align:right; }
+  .mktrow .track { flex:1; display:block; height:clamp(16px,2.4vh,24px); background:var(--surface2); border-radius:5px; overflow:hidden; }
+  .mktrow .fill { display:block; height:100%; border-radius:5px; min-width:3px; }
+  .mktcap { font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,11.5px); color:var(--muted-ink); margin-top:6px; margin-left:88px; }
+  .mktrow .val { font-family:var(--font-mono); font-size:clamp(10px,1.15vw,13px); font-weight:700; width:92px; flex:0 0 auto; }
+  .headline-num { font-size:clamp(38px,7vw,86px); font-weight:800; letter-spacing:-3px; line-height:.95; }
 </style>
 
-<style>
-  /* ---- additions for the diagnosis decks ---- */
-  .slide.dense{padding:44px 54px;gap:16px}
-  .slide.dense h1{font-size:40px}
-  .slide.dense li{font-size:18.5px;line-height:1.35}
-  .lede{font-size:21px;line-height:1.45;color:var(--muted);font-weight:500;flex:none;max-width:64ch}
-  .lede b{color:var(--ink);font-weight:800}
-  .cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;flex:none}
-  .cols.three{grid-template-columns:1fr 1fr 1fr;gap:18px}
-  .card{border:1px solid var(--line);border-radius:14px;padding:18px 20px;background:#FCFDFD;display:flex;flex-direction:column;gap:8px}
-  .card.bad{border-color:#E8C9A6;background:#FDF8F1}
-  .card.good{border-color:#BFDED8;background:#F4FAF8}
-  .card h3{margin:0;font-size:14px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;color:var(--teal)}
-  .card.bad h3{color:var(--amber-deep)}
-  .card .num{font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--teal-deep);font-variant-numeric:tabular-nums}
-  .card.bad .num{color:var(--amber-deep)}
-  .card p{margin:0;font-size:15.5px;line-height:1.4;color:var(--muted)}
-  .card p b{color:var(--ink);font-weight:700}
-  table{border-collapse:collapse;width:100%;font-size:16px;font-variant-numeric:tabular-nums;flex:none}
-  th{text-align:left;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);
-     font-weight:800;padding:0 10px 8px 0;border-bottom:1px solid var(--line)}
-  th.r,td.r{text-align:right;padding-right:0}
-  th.r+th,td.r+td{padding-left:22px}
-  td{padding:9px 10px 9px 0;border-bottom:1px solid #EEF4F2;font-weight:600}
-  td.dim{color:var(--muted);font-weight:500}
-  td b{font-weight:800}
-  tr.hi td{background:#FBF6EE}
-  .tag{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
-       padding:3px 9px;border-radius:999px;vertical-align:middle}
-  .tag.ok{background:var(--teal-wash);color:var(--teal-deep)}
-  .tag.no{background:#F7EAD8;color:var(--amber-deep)}
-  ol{margin:0;padding:0;list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:11px;flex:none}
-  ol li{font-size:18px;line-height:1.35;padding-left:42px;position:relative;font-weight:500}
-  ol li::before{counter-increment:step;content:counter(step);position:absolute;left:0;top:-1px;
-    width:28px;height:28px;border-radius:8px;background:var(--teal);color:#fff;
-    font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center}
-  ol li b{font-weight:800}
-  .kicker{font-size:16px;color:var(--muted);line-height:1.45;flex:none;border-left:3px solid var(--teal);padding-left:14px}
-  .kicker b{color:var(--ink);font-weight:800}
-  .track-proof{display:flex;flex-direction:column;gap:9px;flex:none}
-  .step{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:12px;
-        font-size:16.5px;padding:9px 12px;border-radius:10px;background:#F4FAF8;border:1px solid #DDEDE9}
-  .step .n{width:22px;height:22px;border-radius:6px;background:var(--teal);color:#fff;font-size:12.5px;
-           font-weight:800;display:flex;align-items:center;justify-content:center}
-  .step code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px;color:var(--teal-deep)}
-  .title-slide h1{font-size:56px}
-  .meta{font-size:14px;color:var(--faint);font-weight:600;flex:none}
-  @media (max-width:640px){.cols,.cols.three{grid-template-columns:1fr}.slide.dense{padding:26px 20px}
-    table{font-size:13px}.slide.dense li{font-size:16px}}
-</style>
 </head>
+
 <body>
-  <div class="viewport">
-    <div class="track" id="track">
+<div class="deck">
 
-      <section class="panel"><div class="slide title-slide">
-        <div class="eyebrow">Deep Centered &middot; conversion actions &middot; normalized</div>
-        <h1>What we count,<br>and what it was worth.</h1>
-        <div class="lede">On July 30 you asked for the mapping: <b>this conversion action equals this lead event</b>. This is that map. Then we strip the actions that never represented a patient, and compare where we are now against where we were, on the same basis.</div>
-        <div class="meta">Account &ldquo;New Deep Eddy&rdquo; &middot; DCMH Search Therapy In Person + Telehealth Core Cities &middot; prepared August 29, 2026</div>
-      </div></section>
+<!-- 1 -->
+<section class="slide slide--table">
+  <p class="slide__label reveal" style="color:var(--critical);">What we count</p>
+  <h2 class="slide__heading reveal" style="margin-bottom:14px;">Four of five signals never reach the bidder.</h2>
+  <div class="reveal">
+    <div class="spendbar"><div class="sg" style="flex:0 0 44.22%;background:#006300;"><span>44%</span></div><div class="sg" style="flex:0 0 27.21%;background:#8e8b85;"><span>27%</span></div><div class="sg" style="flex:0 0 24.83%;background:#b3b0aa;"><span>25%</span></div><div class="sg" style="flex:0 0 2.04%;background:#c9c6c0;"></div><div class="sg" style="flex:1;background:#d5d2cc;"></div></div>
+    <div class="sgkeys"><div class="sgkey"><i style="background:#006300"></i><b>What converts</b><span>130 &middot; counts</span><em>The WhatConverts upload</em></div><div class="sgkey"><i style="background:#8e8b85"></i><b>Click To Call</b><span>80 &middot; ignored</span><em>A tap, not a conversation</em></div><div class="sgkey"><i style="background:#b3b0aa"></i><b>Lead Form</b><span>73 &middot; ignored</span><em>Observation only</em></div><div class="sgkey"><i style="background:#c9c6c0"></i><b>Phone Call</b><span>6 &middot; ignored</span><em>Observation only</em></div><div class="sgkey"><i style="background:#d5d2cc"></i><b>Calls from ads</b><span>5 &middot; ignored</span><em>Observation only</em></div></div>
+  </div>
+  <div class="causebox reveal">
+    <div class="causebig">1 of 5<small>carries every bid</small></div>
+    <div class="mktbars">
+      <div class="mktrow"><span class="lbl">Recorded</span><span class="track"><span class="fill" style="width:100%;background:#b3b0aa;"></span></span><span class="val">294</span></div>
+      <div class="mktrow"><span class="lbl">Counted</span><span class="track"><span class="fill" style="width:44.2%;background:var(--good);"></span></span><span class="val">130</span></div>
+    </div>
+    <p class="mktcap">Nothing double counts. Everything rests on one upload.</p>
+  </div>
+  <div class="caveats reveal">
+    <span class="caveat">Therapy Core Cities &middot; 1 to 28 Aug</span>
+    <span class="caveat">Pulled from the account, not read off names</span>
+    <span class="caveat">Every page view action is now removed</span>
+  </div>
+</section>
 
-      <section class="panel"><div class="slide dense">
-        <div class="eyebrow">Pulled from the account &middot; August 1 to 28</div>
-        <h1>One action carries all the bidding.</h1>
-        <table>
-          <tr><th>Conversion action</th><th class="r">Recorded</th><th class="r">Counts for bidding</th><th>Setting in the account</th></tr>
-          <tr class="hi"><td><b>DCMH Leads- What converts</b></td><td class="r"><b>130</b></td><td class="r"><b>130</b></td><td class="dim">primary, one per click, 60 day window</td></tr>
-          <tr><td>DCMH Click To Call</td><td class="r">80</td><td class="r">0</td><td class="dim">observation only, not primary</td></tr>
-          <tr><td>DCMH Lead Form</td><td class="r">73</td><td class="r">0</td><td class="dim">observation only, not primary</td></tr>
-          <tr><td>DCMH Phone Call Conversion</td><td class="r">6</td><td class="r">0</td><td class="dim">observation only, not primary</td></tr>
-          <tr><td>Calls from ads</td><td class="r">5</td><td class="r">0</td><td class="dim">observation only, not primary</td></tr>
-          <tr><td class="dim"><b>Total</b></td><td class="r"><b>294</b></td><td class="r"><b>130</b></td><td class="dim">&nbsp;</td></tr>
-        </table>
-        <div class="kicker">The good news first: <b>nothing is double counted</b>. Only one of the five reaches the bidder. And the handover is healthier than the 39.5% acceptance rate suggests. Checked against WhatConverts directly: <b>576 paid leads carried a click ID in August, 277 of them unique, and Google credited 261</b>. The shortfall is about <b>16 leads, near 6%</b>, not the 60% the acceptance rate implies.</div>
-      </div></section>
+<!-- 2 -->
+<section class="slide slide--table" style="background-image: radial-gradient(ellipse at 88% 8%, var(--accent-dim) 0%, transparent 50%);">
+  <p class="slide__label reveal">Then vs now</p>
+  <h2 class="slide__heading reveal" style="margin-bottom:12px;">The old campaigns were never cheap.</h2>
+  <div class="kpi-row reveal">
+    <div class="slide__kpi"><div class="slide__kpi-val">$30</div><div class="slide__kpi-label">What everyone remembers</div><div class="slide__kpi-trend">page views, not patients</div></div>
+    <div class="slide__kpi"><div class="slide__kpi-val">$81</div><div class="slide__kpi-label">Best the old account did</div><div class="slide__kpi-trend">Q1 2025, normalized</div></div>
+    <div class="slide__kpi"><div class="slide__kpi-val" style="color:var(--good);">$76</div><div class="slide__kpi-label">Q1 this year</div><div class="slide__kpi-trend">beats every legacy quarter</div></div>
+    <div class="slide__kpi"><div class="slide__kpi-val" style="color:var(--critical);">$136</div><div class="slide__kpi-label">Q2 this year</div><div class="slide__kpi-trend">the real regression</div></div>
+  </div>
+  <div class="reveal" style="margin-top:clamp(10px,1.6vh,18px);">
+    <div class="mktbars">
+      <div class="mktrow"><span class="lbl">Q1 2025 Austin</span><span class="track"><span class="fill" style="width:59.6%;background:#b3b0aa;"></span></span><span class="val">$81</span></div>
+      <div class="mktrow"><span class="lbl">Q1 2025 All TX</span><span class="track"><span class="fill" style="width:81.6%;background:#b3b0aa;"></span></span><span class="val">$111</span></div>
+      <div class="mktrow"><span class="lbl">Q1 2026</span><span class="track"><span class="fill" style="width:55.9%;background:var(--good);"></span></span><span class="val">$76</span></div>
+      <div class="mktrow"><span class="lbl">Q2 2026</span><span class="track"><span class="fill" style="width:100%;background:var(--critical);"></span></span><span class="val">$136</span></div>
+      <div class="mktrow"><span class="lbl">Aug 2026</span><span class="track"><span class="fill" style="width:75.7%;background:var(--accent);"></span></span><span class="val">$103</span></div>
+    </div>
+    <p class="mktcap">Cost per lead. Shorter is better.</p>
+  </div>
+  <div class="caveats reveal">
+    <span class="caveat">Page views inflated the old counts 70%</span>
+    <span class="caveat">PMax $14 discarded &middot; $0.65 CPC, display and brand</span>
+    <span class="caveat">$76 unverified until the tracking change dates are pulled</span>
+  </div>
+</section>
 
-      <section class="panel"><div class="slide dense">
-        <div class="eyebrow">What we are stripping out and why</div>
-        <h1>Two separate faults, two years apart.</h1>
-        <div class="cols">
-          <div class="card bad">
-            <h3>Then &middot; the legacy inflation</h3>
-            <div class="num">+70%</div>
-            <p><b>Page views were set as a primary conversion.</b> Every visitor who reached a page counted as a lead. That inflated the conversion count by about 70% and is the entire reason the old campaigns look cheap.</p>
-          </div>
-          <div class="card bad">
-            <h3>July 2026 &middot; the tangle</h3>
-            <div class="num">Account wide</div>
-            <p>The <b>WhatConverts offline action was set to primary</b> while a genuine primary sat as secondary. Conversions went to the wrong campaigns. Resolved July 22 to July 30.</p>
-          </div>
-        </div>
-        <div class="kicker">The normalizing rule for everything that follows: <b>one patient per click, counted from WhatConverts</b>. Page views, click to call taps and duplicate phone events are signals. They are not leads, and nothing should bid on them.</div>
-      </div></section>
+<!-- 3 -->
+<section class="slide slide--table">
+  <p class="slide__label reveal">Why the numbers move after you read them</p>
+  <h2 class="slide__heading reveal" style="margin-bottom:12px;">Ninety percent lands in a week.</h2>
+  <div class="kpi-row reveal">
+    <div class="slide__kpi"><div class="slide__kpi-val">80%</div><div class="slide__kpi-label">Same day</div><div class="slide__kpi-trend">patients act at once</div></div>
+    <div class="slide__kpi"><div class="slide__kpi-val" style="color:var(--accent);">90%</div><div class="slide__kpi-label">By day 8</div><div class="slide__kpi-trend">a week old read is short a tenth</div></div>
+    <div class="slide__kpi"><div class="slide__kpi-val">97%</div><div class="slide__kpi-label">By day 30</div><div class="slide__kpi-trend">a month settles it</div></div>
+    <div class="slide__kpi"><div class="slide__kpi-val" style="color:#eb6834;">1&ndash;2.5%</div><div class="slide__kpi-label">Thrown away</div><div class="slide__kpi-trend">4 to 6 leads in August</div></div>
+  </div>
+  <div class="viz reveal" data-palette="#2a78d6,#eb6834">
+    <div class="viz-legend">
+      <span><i style="background:var(--s1);"></i> What converts &middot; 60 day window</span>
+      <span><i style="background:var(--s2);"></i> Lead Form &middot; 90 day window</span>
+    </div>
+    <svg viewBox="0 0 1000 300" role="img" aria-label="Cumulative share of conversions by days from click. 80 percent arrive the same day, 90 percent by day 8, 97 percent by day 30. The WhatConverts action stops at day 60 when its window shuts. The Lead Form action, on a 90 day window, keeps collecting a further 1.1 percent.">
+      <line class="grid" x1="82.0" y1="210.0" x2="830.0" y2="210.0"/><text class="tick" x="72.0" y="214.0" text-anchor="end">80%</text>
+      <line class="grid" x1="82.0" y1="164.0" x2="830.0" y2="164.0"/><text class="tick" x="72.0" y="168.0" text-anchor="end">85%</text>
+      <line class="grid" x1="82.0" y1="118.0" x2="830.0" y2="118.0"/><text class="tick" x="72.0" y="122.0" text-anchor="end">90%</text>
+      <line class="grid" x1="82.0" y1="72.0" x2="830.0" y2="72.0"/><text class="tick" x="72.0" y="76.0" text-anchor="end">95%</text>
+      <line class="grid" x1="82.0" y1="26.0" x2="830.0" y2="26.0"/><text class="tick" x="72.0" y="30.0" text-anchor="end">100%</text>
+      <line class="axis" x1="82.0" y1="256.0" x2="830.0" y2="256.0"/>
+      <text class="tick" x="82.0" y="275.0" text-anchor="middle">1d</text>
+      <text class="tick" x="188.9" y="275.0" text-anchor="middle">3d</text>
+      <text class="tick" x="295.7" y="275.0" text-anchor="middle">8d</text>
+      <text class="tick" x="402.6" y="275.0" text-anchor="middle">21d</text>
+      <text class="tick" x="509.4" y="275.0" text-anchor="middle">30d</text>
+      <text class="tick" x="616.3" y="275.0" text-anchor="middle">45d</text>
+      <text class="tick" x="723.1" y="275.0" text-anchor="middle">60d</text>
+      <text class="tick" x="830.0" y="275.0" text-anchor="middle">90d</text>
+      <text class="axlabel" x="456.0" y="294.0" text-anchor="middle">Days from the click to the lead</text>
+      <line class="nowline" x1="295.7" y1="16.0" x2="295.7" y2="256.0" stroke-dasharray="3 3"/>
+      <text class="dsub" x="302.7" y="25.0" style="font-weight:700;">you read here</text>
+      <line class="nowline" x1="723.1" y1="16.0" x2="723.1" y2="256.0"/>
+      <text class="dsub" x="716.1" y="248.0" text-anchor="end" style="font-weight:700;">window shuts</text>
+      <path class="ln" d="M82.0,223.8 L188.9,176.9 L295.7,118.0 L402.6,74.8 L509.4,51.8 L616.3,44.4 L723.1,36.1 L830.0,26.0" stroke="var(--s2)"/>
+      <path class="ln" d="M82.0,207.2 L188.9,169.5 L295.7,121.7 L402.6,74.8 L509.4,55.4 L616.3,39.8 L723.1,26.0" stroke="var(--s1)"/>
+      <circle class="mk" cx="82.0" cy="223.8" r="4.5" fill="var(--s2)"/>
+      <circle class="mk" cx="188.9" cy="176.9" r="4.5" fill="var(--s2)"/>
+      <circle class="mk" cx="295.7" cy="118.0" r="4.5" fill="var(--s2)"/>
+      <circle class="mk" cx="402.6" cy="74.8" r="4.5" fill="var(--s2)"/>
+      <circle class="mk" cx="509.4" cy="51.8" r="4.5" fill="var(--s2)"/>
+      <circle class="mk" cx="616.3" cy="44.4" r="4.5" fill="var(--s2)"/>
+      <circle class="mk" cx="723.1" cy="36.1" r="4.5" fill="var(--s2)"/>
+      <circle class="mk" cx="830.0" cy="26.0" r="4.5" fill="var(--s2)"/>
+      <circle class="mk" cx="82.0" cy="207.2" r="4.5" fill="var(--s1)"/>
+      <circle class="mk" cx="188.9" cy="169.5" r="4.5" fill="var(--s1)"/>
+      <circle class="mk" cx="295.7" cy="121.7" r="4.5" fill="var(--s1)"/>
+      <circle class="mk" cx="402.6" cy="74.8" r="4.5" fill="var(--s1)"/>
+      <circle class="mk" cx="509.4" cy="55.4" r="4.5" fill="var(--s1)"/>
+      <circle class="mk" cx="616.3" cy="39.8" r="4.5" fill="var(--s1)"/>
+      <circle class="mk" cx="723.1" cy="26.0" r="4.5" fill="var(--s1)"/>
+      <text class="dlabel" fill="var(--s1)" x="304.7" y="99.7">89.6%</text>
+      <text class="dsub" x="304.7" y="113.7">by day 8</text>
+      <text class="dlabel" fill="var(--s1)" x="716.1" y="18.0" text-anchor="end">100%</text>
+      <text class="dlabel" fill="var(--s2)" x="840.0" y="30.0">+1.1%</text>
+      <text class="dsub" x="840.0" y="44.0">after day 60</text>
+      <line class="hoverline" id="hl" x1="0" y1="16.0" x2="0" y2="256.0"/>
+      <circle class="hovermk" id="hm1" r="6" fill="var(--s1)"/><circle class="hovermk" id="hm2" r="6" fill="var(--s2)"/>
+      <rect id="hit" x="82.0" y="16.0" width="748.0" height="240.0" fill="transparent" style="cursor:crosshair"/>
+    </svg>
+    <div class="viz-tip" id="tip"></div>
+  </div>
+  <div class="caveats reveal">
+    <span class="caveat">1,433 conversions &middot; 1 May to 28 Aug</span>
+    <span class="caveat">Click to lead, not upload delay</span>
+    <span class="caveat">Past day 60 measured on Lead Form, the only 90 day action</span>
+    <span class="caveat">Each line is share of its own action total</span>
+  </div>
+</section>
 
-      <section class="panel"><div class="slide dense">
-        <div class="eyebrow">Then vs now, on the same basis</div>
-        <h1>The old campaigns were never cheap.</h1>
-        <table>
-          <tr><th>Period</th><th>Campaign</th><th class="r">Normalized cost / lead</th><th>Note</th></tr>
-          <tr><td class="dim">Q1 2025</td><td>DEP Austin, non brand</td><td class="r"><b>$81</b></td><td class="dim">the best the legacy set ever did</td></tr>
-          <tr><td class="dim">Q1 2025</td><td>DEP General All TX, non brand</td><td class="r"><b>$111</b></td><td class="dim">&nbsp;</td></tr>
-          <tr><td class="dim">Q1 2025</td><td>DEP PMax</td><td class="r">discard</td><td class="dim">$14 on paper at $0.65 a click, mostly display and brand</td></tr>
-          <tr class="hi"><td><b>Q1 2026</b></td><td><b>Core Cities</b></td><td class="r"><b>$76</b></td><td class="dim">beats every legacy quarter</td></tr>
-          <tr><td>Q2 2026</td><td>Core Cities</td><td class="r"><b>$136</b></td><td class="dim">the real regression</td></tr>
-          <tr><td>Aug 2026</td><td>Core Cities</td><td class="r"><b>$103</b></td><td class="dim">$105 non brand, $25 brand</td></tr>
-        </table>
-        <div class="kicker">The $30 a lead everybody remembers was page views, not patients. <b>Normalized, the best the old account ever managed was $81, and Q1 of this year beat it at $76.</b> Nothing was lost that we need to rediscover. The question worth asking is Q2, where the cost per lead nearly doubled while spend went up.</div>
-      </div></section>
-
-      <section class="panel"><div class="slide dense">
-        <div class="eyebrow">Before we set a target</div>
-        <h1>One change to make, one to avoid.</h1>
-        <ol>
-          <li><b>Do not switch to count every lead per click.</b> Of the 576 paid leads in August, <b>299 are Repeat</b>, the same patient making contact again. Counting them all would roughly double the reported conversions and halve the apparent cost per lead. That is the page view mistake wearing new clothes.</li>
-          <li><b>Do widen the click window from 60 days to 90.</b> It is low risk, it matches the other actions in the account, and it recovers the genuinely aged uploads without inflating anything.</li>
-          <li><b>Still unknown: nobody has pulled the dates conversion tracking changed.</b> Until we do, we cannot say whether the page view action was still live in Q1 2026, so <b>the $76 on the previous slide keeps its asterisk</b>.</li>
-        </ol>
-        <div class="kicker">Order matters. <b>Fix delivery, write the mapping, then set a target cost per lead.</b> A target set on top of a double counted, under delivered number will throttle the campaign for the wrong reason. Nothing moves until you approve it.</div>
-      </div></section>
-
-      <section class="panel"><div class="slide dense">
-        <div class="eyebrow">Why the numbers keep moving after you read them</div>
-        <h1>Ninety percent of the truth lands in a week.</h1>
-        <table>
-          <tr><th>Time from the click to the lead</th><th class="r">Share</th><th class="r">Running total</th><th>What it means for reading a week</th></tr>
-          <tr><td>Same day</td><td class="r">80.3%</td><td class="r">80.3%</td><td class="dim">most patients act immediately</td></tr>
-          <tr><td>1 to 3 days</td><td class="r">4.1%</td><td class="r">84.4%</td><td class="dim">&nbsp;</td></tr>
-          <tr class="hi"><td><b>3 to 8 days</b></td><td class="r">5.2%</td><td class="r"><b>89.6%</b></td><td class="dim">a week old number is short by about a tenth</td></tr>
-          <tr><td>8 to 21 days</td><td class="r">5.1%</td><td class="r">94.7%</td><td class="dim">&nbsp;</td></tr>
-          <tr><td>21 to 30 days</td><td class="r">2.2%</td><td class="r"><b>96.8%</b></td><td class="dim">a month settles it</td></tr>
-          <tr><td>30 to 45 days</td><td class="r">1.7%</td><td class="r">98.5%</td><td class="dim">&nbsp;</td></tr>
-          <tr><td>45 to 60 days</td><td class="r">1.5%</td><td class="r">100%</td><td class="dim">the 60 day window closes here</td></tr>
-        </table>
-        <div class="kicker">Read a week too early and you are judging <b>about 90% of the result</b>. That alone explains most of what looked like a collapse. Past day 60 we are blind by choice: measured on <b>DCMH Lead Form</b>, which runs a 90 day window in this same account, <b>roughly 1% to 2.5% arrives between day 60 and day 90</b> and the WhatConverts action discards it. That is <b>4 to 6 conversions in August</b>. Worth recovering, and far smaller than the rejection rate implied.</div>
-        <div class="meta">Digital Will Ads &middot; prepared by Will Arnett &middot; August 29, 2026 &middot; lag measured across 1,433 conversions, May 1 to August 28</div>
-      </div></section>
-
+<!-- 4 -->
+<section class="slide slide--table slide--with-grid">
+  <p class="slide__label reveal" style="color:var(--good);">What we suggest</p>
+  <h2 class="slide__heading reveal" style="margin-bottom:12px;">Widen the window. Never count repeats.</h2>
+  <div class="reveal">
+    <div class="volbar">
+      <div class="vb-core" style="flex:0 0 48.1%;">Unique &middot; 277 leads</div>
+      <div class="vb-head" style="flex:1;">Repeat &middot; 299 leads</div>
+    </div>
+    <div class="vol-caps"><span style="color:var(--accent);font-weight:700;">New patients. Count these.</span><span style="color:#eb6834;font-weight:700;">The same patient again. Never count these.</span></div>
+  </div>
+  <p class="ratio reveal" style="margin:clamp(7px,1.1vh,12px) 0 clamp(9px,1.4vh,15px);">576 paid leads &rarr; 261 credited<small>the real shortfall is about 16 leads, near 6 percent</small></p>
+  <div class="sp-grid reveal">
+    <div class="sp-col" style="border-top:3px solid var(--good);">
+      <p class="sp-kicker" style="color:var(--good);">Do this Monday</p>
+      <p class="sp-name">Widen 60 days to 90</p>
+      <ul class="sp-facts">
+        <li><b>Effect</b><span>recovers 1 to 2.5%</span></li>
+        <li><b>Worth</b><span class="good">4 to 6 leads a month</span></li>
+        <li><b>Risk</b><span>low, matches the other actions</span></li>
+        <li><b>Judge</b><span>acceptance rate</span></li>
+      </ul>
+    </div>
+    <div class="sp-col" style="border-top:3px solid var(--critical);">
+      <p class="sp-kicker" style="color:var(--critical);">Do not do this</p>
+      <p class="sp-name">Count every lead per click</p>
+      <ul class="sp-facts">
+        <li><b>Effect</b><span class="bad">adds 299 repeat contacts</span></li>
+        <li><b>Result</b><span class="bad">conversions roughly double</span></li>
+        <li><b>Then</b><span class="bad">cost per lead halves on paper only</span></li>
+        <li><b>Verdict</b><span>the page view mistake again</span></li>
+      </ul>
     </div>
   </div>
-
-  <div class="hud">
-    <button class="nav-btn" id="prev" aria-label="Previous slide">&#8249;</button>
-    <div class="dots" id="dots"></div>
-    <span class="count" id="count">1 / 1</span>
-    <button class="nav-btn" id="next" aria-label="Next slide">&#8250;</button>
+  <div class="chiprow reveal">
+    <div class="chipcard" style="border-color:var(--critical);"><b>Still unknown</b><span>When tracking changed</span><em>Google keeps 30 days of history. The $76 keeps its asterisk.</em></div>
+    <div class="chipcard" style="border-color:var(--accent);"><b>Order matters</b><span>Fix delivery, then set a target</span><em>A target on an unsettled number throttles the wrong thing</em></div>
   </div>
-  <div class="hint">&#8592; &#8594; arrow keys to navigate</div>
-  <script>
-    const track = document.getElementById('track');
-    const total = track.children.length;
-    let i = 0;
-    const exportN = new URLSearchParams(location.search).get('export');
-    if (exportN) {
-      document.body.classList.add('export');
-      const n = Math.max(1, Math.min(total, parseInt(exportN, 10) || 1));
-      track.children[n - 1].classList.add('export-on');
+</section>
+</div>
+<script>
+(function(){
+  %s
+  function init(){
+    var svg=document.querySelector('.viz svg'); if(!svg)return;
+    var hit=document.getElementById('hit'),hl=document.getElementById('hl'),m1=document.getElementById('hm1'),
+        m2=document.getElementById('hm2'),tip=document.getElementById('tip'),wrap=document.querySelector('.viz');
+    function move(ev){
+      var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,ux=(ev.clientX-r.left)/r.width*vb.width,b=0,bd=1e9;
+      for(var i=0;i<P.length;i++){var d=Math.abs(P[i].x-ux); if(d<bd){bd=d;b=i;}}
+      var p=P[b],n=N[b];
+      hl.setAttribute('x1',p.x);hl.setAttribute('x2',p.x);hl.style.opacity=1;
+      if(p.v===null){m1.style.opacity=0;}
+      else{m1.setAttribute('cx',p.x);m1.setAttribute('cy',p.y1);m1.style.opacity=1;}
+      m2.setAttribute('cx',p.x);m2.setAttribute('cy',n.y2);m2.style.opacity=1;
+      tip.innerHTML='<b>By day '+p.d+'</b>'+
+        '<div class="r"><i style="background:var(--s1)"></i>What converts<span class="v">'+(p.v===null?'window shut':p.v+'%')+'</span></div>'+
+        '<div class="r"><i style="background:var(--s2)"></i>Lead Form<span class="v">'+n.v+'%</span></div>';
+      tip.style.opacity=1;
+      var py=(p.v===null?p.y1:p.y1)/vb.height*r.height,px=p.x/vb.width*r.width,wr=wrap.getBoundingClientRect();
+      var lf=px+(r.left-wr.left)+16,tp=py+(r.top-wr.top)-10;
+      if(lf+tip.offsetWidth>wr.width)lf=px+(r.left-wr.left)-tip.offsetWidth-16;
+      tip.style.left=Math.max(0,lf)+'px';tip.style.top=Math.max(0,tp)+'px';
     }
-    const dotsWrap = document.getElementById('dots');
-    for (let d = 0; d < total; d++){
-      const b = document.createElement('button');
-      b.className = 'dot'; b.setAttribute('aria-label', 'Go to slide ' + (d+1));
-      b.addEventListener('click', () => go(d));
-      dotsWrap.appendChild(b);
-    }
-    const dots = [...dotsWrap.children];
-    const prevBtn = document.getElementById('prev');
-    const nextBtn = document.getElementById('next');
-    const count = document.getElementById('count');
-    function render(){
-      track.style.transform = 'translateX(' + (-i * 100) + '%)';
-      count.textContent = (i+1) + ' / ' + total;
-      dots.forEach((d,n) => d.classList.toggle('on', n === i));
-      prevBtn.disabled = i === 0;
-      nextBtn.disabled = i === total - 1;
-    }
-    function go(n){ i = Math.max(0, Math.min(total-1, n)); render(); }
-    const next = () => go(i+1);
-    const prev = () => go(i-1);
-    prevBtn.addEventListener('click', prev);
-    nextBtn.addEventListener('click', next);
-    document.addEventListener('keydown', (e) => {
-      if (['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){ e.preventDefault(); next(); }
-      else if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){ e.preventDefault(); prev(); }
-      else if (e.key === 'Home'){ e.preventDefault(); go(0); }
-      else if (e.key === 'End'){ e.preventDefault(); go(total-1); }
+    hit.addEventListener('mousemove',move);
+    hit.addEventListener('mouseleave',function(){hl.style.opacity=0;m1.style.opacity=0;m2.style.opacity=0;tip.style.opacity=0;});
+  }
+  if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
+<script>
+  /* ============ DECK ENGINE ============ */
+  function SlideEngine() {
+    var deck = document.querySelector('.deck');
+    var slides = [].slice.call(document.querySelectorAll('.slide'));
+    var current = 0, total = slides.length;
+
+    var bar = document.createElement('div');
+    bar.className = 'deck-progress';
+    document.body.appendChild(bar);
+
+    var dots = document.createElement('div');
+    dots.className = 'deck-dots';
+    slides.forEach(function(_, i) {
+      var d = document.createElement('button');
+      d.className = 'deck-dot';
+      d.title = 'Slide ' + (i + 1);
+      d.onclick = function() { goTo(i); };
+      dots.appendChild(d);
     });
-    render();
-  </script>
+    document.body.appendChild(dots);
+    var dotEls = [].slice.call(dots.children);
+
+    var ctr = document.createElement('div');
+    ctr.className = 'deck-counter';
+    document.body.appendChild(ctr);
+
+    var hints = document.createElement('div');
+    hints.className = 'deck-hints';
+    hints.textContent = '← → or scroll to navigate';
+    document.body.appendChild(hints);
+    var hintTimer = setTimeout(function() { hints.classList.add('faded'); }, 4000);
+    function fadeHints() { clearTimeout(hintTimer); hints.classList.add('faded'); }
+
+    function update() {
+      bar.style.width = ((current + 1) / total * 100) + '%';
+      dotEls.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+      ctr.textContent = (current + 1) + ' / ' + total;
+    }
+    function goTo(i) {
+      slides[Math.max(0, Math.min(i, total - 1))].scrollIntoView({ behavior: 'smooth' });
+    }
+    function next() { if (current < total - 1) goTo(current + 1); }
+    function prev() { if (current > 0) goTo(current - 1); }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.target.closest('.table-scroll, input, textarea, [contenteditable]')) return;
+      if (['ArrowDown', 'ArrowRight', ' ', 'PageDown'].indexOf(e.key) >= 0) { e.preventDefault(); next(); }
+      else if (['ArrowUp', 'ArrowLeft', 'PageUp'].indexOf(e.key) >= 0) { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(total - 1); }
+      fadeHints();
+    });
+
+    var touchY;
+    deck.addEventListener('touchstart', function(e) { touchY = e.touches[0].clientY; }, { passive: true });
+    deck.addEventListener('touchend', function(e) {
+      var dy = touchY - e.changedTouches[0].clientY;
+      if (Math.abs(dy) > 50) { dy > 0 ? next() : prev(); }
+    });
+
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          current = slides.indexOf(entry.target);
+          update();
+        }
+      });
+    }, { threshold: 0.5 });
+    slides.forEach(function(s) { obs.observe(s); });
+
+    update();
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    SlideEngine();
+    /* deep link: #s3 opens slide 3 */
+    var hm = location.hash.match(/^#s(\d+)$/);
+    if (hm) {
+      var deck = document.querySelector('.deck');
+      var slides = document.querySelectorAll('.slide');
+      var idx = Math.max(0, Math.min(parseInt(hm[1], 10) - 1, slides.length - 1));
+      slides.forEach(function(s) { s.classList.add('visible'); });
+      deck.style.scrollBehavior = 'auto';
+      deck.scrollTop = slides[idx].offsetTop;
+      requestAnimationFrame(function() { deck.style.scrollBehavior = ''; });
+    }
+  });
+</script>
 </body>
 </html>
