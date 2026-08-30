@@ -429,24 +429,22 @@
 
 <!-- 2 -->
 <section class="slide slide--table">
-  <p class="slide__label reveal" style="color:var(--critical);">Why we stopped using Google's count</p>
-  <h2 class="slide__heading reveal" style="margin-bottom:12px;">Google reported more leads than exist.</h2>
-  <table class="data-table" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
-    <tr><th>Month</th><th class="num">Google said</th><th class="num">WhatConverts holds, in total</th><th>Verdict</th></tr>
-    <tr><td>March</td><td class="num"><b>389</b></td><td class="num">352</td><td style="color:var(--critical);font-weight:700;">impossible</td></tr>
-    <tr><td>April</td><td class="num"><b>560</b></td><td class="num">522</td><td style="color:var(--critical);font-weight:700;">impossible</td></tr>
-    <tr><td>July</td><td class="num">82</td><td class="num">100 unique</td><td style="color:var(--good);font-weight:700;">agrees</td></tr>
-    <tr><td>August</td><td class="num">130</td><td class="num">139 unique</td><td style="color:var(--good);font-weight:700;">agrees</td></tr>
-  </table>
-  <div class="causebox reveal">
-    <div class="causebig">37<small>leads that were never there</small></div>
+  <p class="slide__label reveal">Where these numbers come from</p>
+  <h2 class="slide__heading reveal" style="margin-bottom:14px;">Every number here is from WhatConverts. Nothing from Google.</h2>
+  <div class="causebox reveal" style="grid-template-columns:auto 1fr;">
+    <div class="causebig" style="color:var(--good);">100%<small>your own lead system</small></div>
     <div>
-      <p class="slide__body" style="font-size:clamp(14px,1.7vw,19px);max-width:62ch;">Google cannot import more leads than WhatConverts sent it. In March and April it credited Core Cities with conversions that belong to other campaigns. That is the mis-attribution the team found in July.</p>
+      <p class="slide__body" style="font-size:clamp(15px,1.9vw,21px);max-width:60ch;">Lead counts, cost per lead and conversion rate on the previous slide are all taken straight from <b>your WhatConverts account</b>, for this campaign, counting <b>unique leads only</b>. Not one figure comes from Google's conversion tracking.</p>
     </div>
   </div>
+  <div class="chiprow reveal">
+    <div class="chipcard" style="border-color:var(--good);"><b>Source</b><span>WhatConverts account 81543</span><em>The system your team already works in every day</em></div>
+    <div class="chipcard" style="border-color:var(--good);"><b>Scope</b><span>Campaign 23419200228</span><em>Core Cities therapy, January to August 2026</em></div>
+    <div class="chipcard" style="border-color:var(--good);"><b>Counted</b><span>Unique leads only</span><em>Repeat contacts from the same patient are excluded</em></div>
+    <div class="chipcard" style="border-color:var(--accent);"><b>Check it yourself</b><span>Every figure is in your dashboard</span><em>Nothing here needs you to trust Google, or us</em></div>
+  </div>
   <div class="caveats reveal">
-    <span class="caveat">Spring numbers are inflated, so no spring benchmark is safe</span>
-    <span class="caveat">July and August agree closely, so recent numbers are sound</span>
+    <span class="caveat">Google's own count for March and April exceeded the leads WhatConverts holds, so we stopped using it</span>
   </div>
 </section>
 
