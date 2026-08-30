@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Core Cities therapy campaign: cost per lead against monthly spend, measured in WhatConverts.">
+<title>Core Cities &middot; Spend Ceiling</title>
+<!-- Deep Centered / New Deep Eddy (9117339135). 4 slides: what counts / then vs now / delay / do and don't.
+     Google Ads API v22 + WhatConverts API v1 (account 81543), 1 May - 28 Aug 2026.
+     House rule: no paragraphs. Pictures and short words. -->
+<style>
+  :root {
+    --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --bg: #ffffff;
+    --surface: #f8f8f8;
+    --surface2: #f0f0f0;
+    --border: rgba(0, 0, 0, 0.08);
+    --border-bright: rgba(0, 0, 0, 0.16);
+    --text: #111111;
+    --text-dim: #5c5c5c;
+    --accent: #2a78d6;
+    --accent-dim: rgba(42, 120, 214, 0.07);
+    --muted-ink: #898781;
+    --good: #006300;
+    --critical: #d03b3b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    color: var(--text);
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  /* ============ DECK ENGINE ============ */
+  .deck {
+    height: 100dvh;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  .slide {
+    height: 100dvh;
+    scroll-snap-align: start;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(40px, 6vh, 80px) clamp(40px, 8vw, 120px);
+    isolation: isolate;
+    opacity: 0;
+    transform: translateY(40px) scale(0.98);
+    transition:
+      opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .slide.visible { opacity: 1; transform: none; }
+  .slide .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .slide.visible .reveal { opacity: 1; transform: none; }
+  .slide.visible .reveal:nth-child(1) { transition-delay: 0.1s; }
+  .slide.visible .reveal:nth-child(2) { transition-delay: 0.2s; }
+  .slide.visible .reveal:nth-child(3) { transition-delay: 0.3s; }
+  .slide.visible .reveal:nth-child(4) { transition-delay: 0.4s; }
+  .slide.visible .reveal:nth-child(5) { transition-delay: 0.5s; }
+  .slide.visible .reveal:nth-child(6) { transition-delay: 0.6s; }
+  @media (prefers-reduced-motion: reduce) {
+    .slide, .slide .reveal {
+      opacity: 1 !important; transform: none !important; transition: none !important;
+    }
+    .deck { scroll-behavior: auto; }
+  }
+
+  .slide--with-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ============ NAV CHROME ============ */
+  .deck-progress {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--accent); z-index: 100;
+    transition: width 0.3s ease; pointer-events: none;
+  }
+  .deck-dots {
+    position: fixed; right: clamp(12px, 2vw, 24px); top: 50%;
+    transform: translateY(-50%); display: flex; flex-direction: column;
+    gap: 8px; z-index: 100; padding: 8px;
+    background: color-mix(in srgb, var(--bg) 60%, transparent 40%);
+    border-radius: 20px;
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  }
+  .deck-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-dim); opacity: 0.3; border: none; padding: 0;
+    cursor: pointer; transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .deck-dot:hover { opacity: 0.6; }
+  .deck-dot.active { opacity: 1; transform: scale(1.5); background: var(--accent); }
+  .deck-counter {
+    position: fixed; bottom: clamp(12px, 2vh, 24px); right: clamp(12px, 2vw, 24px);
+    font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);
+    z-index: 100; font-variant-numeric: tabular-nums;
+  }
+  .deck-hints {
+    position: fixed; bottom: clamp(12px, 2vh, 24px); left: 50%;
+    transform: translateX(-50%); font-family: var(--font-mono);
+    font-size: 11px; color: var(--text-dim); opacity: 0.6; z-index: 100;
+    transition: opacity 0.5s ease; white-space: nowrap;
+  }
+  .deck-hints.faded { opacity: 0; pointer-events: none; }
+
+  /* ============ SHARED ============ */
+  .slide__display {
+    font-size: clamp(44px, 8vw, 104px);
+    font-weight: 800;
+    letter-spacing: -2.5px;
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+  .slide__heading {
+    font-size: clamp(26px, 4.5vw, 46px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+  .slide__body {
+    font-size: clamp(16px, 2vw, 22px);
+    line-height: 1.55;
+    color: var(--text-dim);
+    text-wrap: pretty;
+    max-width: 62ch;
+  }
+  .slide__subtitle {
+    font-family: var(--font-mono);
+    font-size: clamp(12px, 1.4vw, 16px);
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+  .slide__label {
+    font-family: var(--font-mono);
+    font-size: clamp(10px, 1.2vw, 13px);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  .slide--title { justify-content: center; align-items: center; text-align: center; }
+
+  .slide__kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(clamp(150px, 20vw, 230px), 1fr));
+    gap: clamp(12px, 2vw, 24px);
+  }
+  .slide__kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: clamp(16px, 3vh, 30px) clamp(16px, 2vw, 24px);
+    min-width: 0;
+    overflow: hidden;
+  }
+  .slide__kpi-val {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .slide__kpi-label {
+    font-family: var(--font-mono);
+    font-size: clamp(9px, 1.2vw, 13px);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+  .slide__kpi-trend { font-family: var(--font-mono); font-size: 13px; margin-top: 5px; color: var(--text-dim); }
+
+  .slide--table { padding: clamp(24px, 4vh, 48px) clamp(24px, 4vw, 60px); }
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .table-scroll { overflow-x: auto; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    background: var(--surface2);
+    font-family: var(--font-mono);
+    font-size: clamp(10px, 1.2vw, 13px);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    text-align: left;
+    padding: clamp(9px, 1.4vh, 14px) clamp(14px, 2vw, 24px);
+    border-bottom: 2px solid var(--border-bright);
+    white-space: nowrap;
+  }
+  .data-table th.num, .data-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .data-table td {
+    padding: clamp(9px, 1.4vh, 14px) clamp(14px, 2vw, 24px);
+    border-bottom: 1px solid var(--border);
+    font-size: clamp(14px, 1.7vw, 19px);
+    vertical-align: top;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:nth-child(even) { background: var(--surface2); }
+  .tfoot-note {
+    font-family: var(--font-mono);
+    font-size: clamp(10px, 1.2vw, 13px);
+    color: var(--muted-ink);
+    padding-top: 10px;
+    line-height: 1.5;
+  }
+
+  .step-list { list-style: none; counter-reset: step; max-width: 70ch; }
+  .step-list li {
+    counter-increment: step;
+    display: flex;
+    gap: 18px;
+    align-items: baseline;
+    padding: clamp(10px, 1.8vh, 18px) 0;
+    border-bottom: 1px solid var(--border);
+    font-size: clamp(16px, 2vw, 21px);
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before {
+    content: counter(step);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(14px, 1.6vw, 18px);
+    color: var(--accent);
+    flex: 0 0 auto;
+  }
+
+  /* ============ PRINT / PDF: one slide per 16:9 page ============ */
+  @page { size: 13.333in 7.5in; margin: 0; }
+  @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { overflow: visible; }
+    .deck { height: auto; overflow: visible; scroll-snap-type: none; }
+    .slide {
+      height: 100vh !important;
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+      page-break-after: always;
+      break-after: page;
+    }
+    .slide:last-child { page-break-after: auto; break-after: auto; }
+    .slide .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .deck-progress, .deck-dots, .deck-counter, .deck-hints { display: none !important; }
+  }
+</style><style>
+  .tw-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2.2vw,30px); align-items:start; }
+  .tw-col { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:clamp(12px,1.8vh,18px) clamp(13px,1.6vw,20px); min-width:0; overflow:hidden; }
+  .tw-col--kill { border-top:3px solid var(--critical); }
+  .tw-col--keep { border-top:3px solid var(--good); }
+  .tw-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:9px; }
+  .tw-title { font-size:clamp(16px,2vw,23px); font-weight:700; letter-spacing:-.4px; }
+  .tw-sum { font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,12px); color:var(--text-dim); }
+  .tw-list { list-style:none; margin:0; padding:0; column-count:2; column-gap:clamp(10px,1.3vw,18px); }
+  .tw-list li { display:flex; align-items:baseline; gap:6px; padding:2.5px 0; border-bottom:1px solid var(--border);
+    font-size:clamp(10px,1.02vw,13px); line-height:1.3; break-inside:avoid; -webkit-column-break-inside:avoid; }
+  .tw-term { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tw-cost { font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--text-dim); font-size:.92em; }
+  .tw-badge { font-family:var(--font-mono); font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:1.5px 5px; border-radius:20px; white-space:nowrap; background:rgba(0,99,0,.1); color:var(--good); }
+  /* chips row */
+  .chiprow { display:flex; gap:clamp(8px,1.2vw,16px); flex-wrap:wrap; margin-top:clamp(10px,1.6vh,16px); }
+  .chipcard { flex:1 1 0; min-width:150px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:9px 12px; }
+  .chipcard b { display:block; font-family:var(--font-mono); font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:3px; }
+  .chipcard span { font-size:clamp(12px,1.3vw,15px); font-weight:600; }
+  .chipcard em { font-style:normal; font-family:var(--font-mono); font-size:10.5px; color:var(--muted-ink); display:block; margin-top:2px; }
+  .caveats { display:flex; gap:7px; flex-wrap:wrap; margin-top:clamp(8px,1.3vh,14px); }
+  .caveat { font-family:var(--font-mono); font-size:clamp(9px,1vw,11px); color:var(--muted-ink); background:var(--surface2); border-radius:20px; padding:3px 10px; }
+  /* viz */
+  .viz { --s1:#2a78d6; --s2:#eb6834; position:relative; }
+  .viz svg { width:100%; height:auto; display:block; overflow:visible; }
+  .viz .grid { stroke:var(--border); stroke-width:1; }
+  .viz .axis { stroke:var(--border-bright); stroke-width:1; }
+  .viz .tick { font-family:var(--font-mono); font-size:11px; fill:var(--text-dim); }
+  .viz .axlabel { font-family:var(--font-mono); font-size:10px; fill:var(--muted-ink); text-transform:uppercase; letter-spacing:1.2px; }
+  .viz .ln { fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .viz .mk { stroke:var(--bg); stroke-width:2; }
+  .viz .dlabel { font-size:13px; font-weight:700; }
+  .viz .dsub { font-family:var(--font-mono); font-size:10px; fill:var(--text-dim); }
+  .viz .nowline { stroke:var(--muted-ink); stroke-width:1; stroke-dasharray:3 3; }
+  .viz .hoverline { stroke:var(--border-bright); stroke-width:1; opacity:0; pointer-events:none; }
+  .viz .hovermk { opacity:0; pointer-events:none; stroke:var(--bg); stroke-width:2; }
+  .viz-legend { display:flex; gap:18px; margin:0 0 4px; font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,12px); color:var(--text-dim); }
+  .viz-legend span { display:inline-flex; align-items:center; gap:7px; }
+  .viz-legend i { width:14px; height:3px; border-radius:2px; display:inline-block; }
+  .viz-tip { position:absolute; pointer-events:none; opacity:0; transition:opacity .12s ease; background:var(--bg);
+    border:1px solid var(--border-bright); border-radius:9px; padding:8px 10px; font-family:var(--font-mono);
+    font-size:11px; line-height:1.5; color:var(--text); box-shadow:0 4px 14px rgba(0,0,0,.10); white-space:nowrap; z-index:5; }
+  .viz-tip .r { display:flex; align-items:center; gap:6px; margin-top:3px; }
+  .viz-tip .r i { width:9px; height:9px; border-radius:50%; display:inline-block; flex:0 0 auto; }
+  .viz-tip .v { margin-left:auto; padding-left:14px; font-variant-numeric:tabular-nums; }
+  .kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:clamp(9px,1.3vw,16px); margin-bottom:clamp(9px,1.4vh,15px); }
+  .kpi-row .slide__kpi { padding:clamp(10px,1.6vh,16px) clamp(11px,1.4vw,17px); }
+  .kpi-row .slide__kpi-val { font-size:clamp(22px,3.2vw,38px); }
+  /* split slide */
+  .volbar { display:flex; height:clamp(38px,5.5vh,58px); border-radius:10px; overflow:hidden; border:1px solid var(--border); }
+  .volbar div { display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:700; color:#fff; font-size:clamp(11px,1.3vw,15px); white-space:nowrap; }
+  .volbar .vb-core { background:var(--accent); }
+  .volbar .vb-head { background:#eb6834; }
+  .vol-caps { display:flex; justify-content:space-between; margin-top:5px; font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,12px); color:var(--text-dim); }
+  .ratio { text-align:center; font-size:clamp(20px,3vw,34px); font-weight:800; letter-spacing:-1px; margin:clamp(8px,1.3vh,14px) 0 clamp(10px,1.6vh,18px); }
+  .ratio small { display:block; font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,12px); font-weight:600; letter-spacing:1.2px; text-transform:uppercase; color:var(--text-dim); margin-top:3px; }
+  .sp-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2.2vw,30px); align-items:start; }
+  .sp-col { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:clamp(12px,1.8vh,18px) clamp(13px,1.6vw,20px); }
+  .sp-col--own { border-top:3px solid var(--accent); }
+  .sp-col--test { border-top:3px solid #eb6834; }
+  .sp-kicker { font-family:var(--font-mono); font-size:clamp(9px,1vw,11.5px); font-weight:700; text-transform:uppercase; letter-spacing:1.4px; margin-bottom:4px; }
+  .sp-name { font-size:clamp(17px,2.2vw,26px); font-weight:700; letter-spacing:-.5px; line-height:1.15; margin-bottom:9px; }
+  .sp-facts { list-style:none; margin:0 0 10px; padding:0; }
+  .sp-facts li { display:flex; align-items:baseline; gap:9px; padding:5px 0; border-bottom:1px solid var(--border); font-size:clamp(12px,1.35vw,16px); font-weight:600; }
+  .sp-facts li:last-child { border-bottom:none; }
+  .sp-facts b { font-family:var(--font-mono); font-size:9px; text-transform:uppercase; letter-spacing:.9px; color:var(--text-dim); width:44px; flex:0 0 auto; font-weight:700; }
+  .sp-facts .bad { color:var(--critical); }
+  .sp-facts .good { color:var(--good); }
+  .sp-chip { font-family:var(--font-mono); font-size:9.5px; background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:2px 7px; color:var(--text-dim); white-space:nowrap; display:inline-block; margin:0 3px 3px 0; }
+</style>
+<style>
+  .spendbar { display:flex; height:clamp(44px,6.5vh,66px); border-radius:10px; overflow:hidden; border:1px solid var(--border); }
+  .spendbar .sg { display:flex; align-items:center; justify-content:center; }
+  .spendbar .sg span { font-family:var(--font-mono); font-weight:700; color:#fff; font-size:clamp(11px,1.3vw,15px); }
+  .sgkeys { display:flex; gap:clamp(8px,1.2vw,16px); margin-top:10px; flex-wrap:wrap; }
+  .sgkey { flex:1 1 0; min-width:118px; }
+  .sgkey i { width:11px; height:11px; border-radius:3px; display:inline-block; vertical-align:-1px; margin-right:6px; }
+  .sgkey b { font-size:clamp(12px,1.35vw,16px); font-weight:700; }
+  .sgkey span { display:block; font-family:var(--font-mono); font-size:clamp(10px,1.1vw,12.5px); color:var(--text-dim); margin:2px 0 0 17px; }
+  .sgkey em { display:block; font-style:normal; font-family:var(--font-mono); font-size:clamp(9px,1vw,11px); color:var(--muted-ink); margin-left:17px; }
+  .causebox { display:grid; grid-template-columns:auto 1fr; gap:clamp(14px,2vw,28px); align-items:center;
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:clamp(12px,1.8vh,18px) clamp(14px,1.8vw,22px); margin-top:clamp(12px,1.8vh,18px); }
+  .causebig { font-size:clamp(34px,5.5vw,64px); font-weight:800; letter-spacing:-2px; line-height:1; color:var(--critical); }
+  .causebig small { display:block; font-family:var(--font-mono); font-size:clamp(9px,1.05vw,12px); font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--text-dim); margin-top:4px; }
+  .mktbars { display:flex; flex-direction:column; gap:7px; }
+  .mktrow { display:flex; align-items:center; gap:10px; }
+  .mktrow .lbl { font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,12px); color:var(--text-dim); width:78px; flex:0 0 auto; text-align:right; }
+  .mktrow .track { flex:1; display:block; height:clamp(16px,2.4vh,24px); background:var(--surface2); border-radius:5px; overflow:hidden; }
+  .mktrow .fill { display:block; height:100%; border-radius:5px; min-width:3px; }
+  .mktcap { font-family:var(--font-mono); font-size:clamp(9.5px,1.05vw,11.5px); color:var(--muted-ink); margin-top:6px; margin-left:88px; }
+  .mktrow .val { font-family:var(--font-mono); font-size:clamp(10px,1.15vw,13px); font-weight:700; width:92px; flex:0 0 auto; }
+  .headline-num { font-size:clamp(38px,7vw,86px); font-weight:800; letter-spacing:-3px; line-height:.95; }
+</style>
+
+
+
+<style>
+  /* ---------- phones and small tablets: let the deck flow as a document ---------- */
+  @media (max-width: 860px) {
+    body { overflow: auto; }
+    .deck {
+      height: auto; overflow: visible;
+      scroll-snap-type: none; scroll-behavior: auto;
+    }
+    .slide {
+      height: auto; min-height: 0; overflow: visible;
+      scroll-snap-align: none;
+      padding: 30px 18px 36px;
+      border-bottom: 1px solid var(--border);
+      opacity: 1 !important; transform: none !important;
+    }
+    .slide .reveal { opacity: 1 !important; transform: none !important; }
+    .slide:last-child { border-bottom: 0; }
+    .deck-dots, .deck-hints, .deck-counter, .deck-progress { display: none !important; }
+
+    .slide__label { font-size: 11px; letter-spacing: 1.2px; margin-bottom: 10px; }
+    .slide__heading { font-size: 25px; line-height: 1.15; letter-spacing: -0.6px; }
+    .slide__body { font-size: 16px; }
+
+    .kpi-row { grid-template-columns: 1fr 1fr; gap: 9px; }
+    .slide__kpi { padding: 13px 14px; }
+    .slide__kpi-val { font-size: 30px; letter-spacing: -1px; }
+    .slide__kpi-label { font-size: 9.5px; letter-spacing: 1px; margin-top: 5px; }
+    .slide__kpi-trend { font-size: 11px; }
+
+    .sp-grid, .tw-grid { grid-template-columns: 1fr; gap: 12px; }
+    .chiprow { flex-direction: column; gap: 9px; }
+    .chipcard { min-width: 0; }
+    .causebox { grid-template-columns: 1fr; gap: 10px; text-align: left; }
+    .causebig { font-size: 44px; letter-spacing: -1.5px; }
+    .tw-list { column-count: 1; }
+    .sp-facts li { display: block; }
+    .sp-facts li b { display: block; margin-bottom: 3px; }
+
+    /* the chart is the argument, so keep it legible and let it swipe sideways */
+    .viz { overflow-x: auto; -webkit-overflow-scrolling: touch;
+           border: 1px solid var(--border); border-radius: 10px;
+           padding: 6px 4px; background: var(--bg); }
+    .viz svg { width: 620px; min-width: 620px; height: auto; }
+    .viz::after {
+      content: 'swipe the chart sideways';
+      display: block; position: sticky; left: 0;
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted-ink);
+      padding: 2px 6px 0;
+    }
+    .viz-legend { flex-wrap: wrap; gap: 8px; font-size: 10.5px; }
+    .caveats { gap: 6px; }
+    .caveat { font-size: 10.5px; }
+    .mktrow .lbl { width: 62px; font-size: 10px; }
+    .mktrow .val { width: 74px; font-size: 11px; }
+    .mktcap { margin-left: 0; }
+  }
+  @media (max-width: 370px) {
+    .kpi-row { grid-template-columns: 1fr; }
+    .slide__heading { font-size: 22px; }
+  }
+</style>
+
+</head>
+<body>
+
+<div class="deck">
+
+<!-- 1 -->
+<section class="slide slide--table">
+  <p class="slide__label reveal">Eight months, measured in your own lead system</p>
+  <h2 class="slide__heading reveal" style="margin-bottom:10px;">Every month under $12k beat every month over $19k.</h2>
+  <div class="kpi-row reveal">
+    <div class="slide__kpi"><div class="slide__kpi-val" style="color:var(--good);">$60</div><div class="slide__kpi-label">Best month</div><div class="slide__kpi-trend">February, on $8,866</div></div>
+    <div class="slide__kpi"><div class="slide__kpi-val" style="color:var(--critical);">$155</div><div class="slide__kpi-label">Worst month</div><div class="slide__kpi-trend">June, on $22,438</div></div>
+    <div class="slide__kpi"><div class="slide__kpi-val">$12k</div><div class="slide__kpi-label">Where it turns</div><div class="slide__kpi-trend">about $400 a day</div></div>
+    <div class="slide__kpi"><div class="slide__kpi-val">1,339</div><div class="slide__kpi-label">Real patients</div><div class="slide__kpi-trend">unique, not repeat contacts</div></div>
+  </div>
+  <div class="viz reveal">
+    <svg viewBox="0 0 1000 300" role="img" aria-label="Monthly spend against cost per unique lead for Core Cities in 2026. The four months spending under twelve thousand dollars produced leads between sixty and eighty one dollars. The four months spending over nineteen thousand produced leads between eighty eight and one hundred fifty five dollars.">
+      <rect x="92.0" y="26.0" width="256.5" height="224.0" fill="#006300" opacity="0.06"/>
+      <rect x="498.1" y="26.0" width="341.9" height="224.0" fill="#d03b3b" opacity="0.06"/>
+      <text class="dsub" x="220.25" y="240.0" text-anchor="middle" style="font-weight:700;fill:#006300;">under $12k a month</text>
+      <text class="dsub" x="669.05" y="240.0" text-anchor="middle" style="font-weight:700;fill:#d03b3b;">over $19k a month</text>
+      <line class="grid" x1="92.0" y1="185.3" x2="840.0" y2="185.3"/><text class="tick" x="83.0" y="189.3" text-anchor="end">$50</text>
+      <line class="grid" x1="92.0" y1="120.6" x2="840.0" y2="120.6"/><text class="tick" x="83.0" y="124.6" text-anchor="end">$100</text>
+      <line class="grid" x1="92.0" y1="55.9" x2="840.0" y2="55.9"/><text class="tick" x="83.0" y="59.9" text-anchor="end">$150</text>
+      <line class="axis" x1="92.0" y1="250.0" x2="840.0" y2="250.0"/>
+      <text class="tick" x="92.0" y="269.0" text-anchor="middle">$0</text>
+      <text class="tick" x="305.7" y="269.0" text-anchor="middle">$10k</text>
+      <text class="tick" x="519.4" y="269.0" text-anchor="middle">$20k</text>
+      <text class="tick" x="733.1" y="269.0" text-anchor="middle">$30k</text>
+      <text class="axlabel" x="466.0" y="288.0" text-anchor="middle">What the campaign spent that month</text>
+      <text class="axlabel" x="40.0" y="140.0" text-anchor="middle" transform="rotate(-90 40.0 140.0)">Cost per lead</text>
+      <circle class="mk" cx="177.0" cy="164.2" r="7" fill="var(--good)"/>
+      <text class="dlabel" x="177.0" y="188.2" text-anchor="middle" fill="var(--good)">Jan $66</text>
+      <circle class="mk" cx="281.5" cy="173.0" r="7" fill="var(--good)"/>
+      <text class="dlabel" x="294.5" y="179.0" text-anchor="start" fill="var(--good)">Feb $60</text>
+      <circle class="mk" cx="519.2" cy="136.0" r="7" fill="var(--critical)"/>
+      <text class="dlabel" x="519.2" y="121.0" text-anchor="middle" fill="var(--critical)">Mar $88</text>
+      <circle class="mk" cx="783.3" cy="113.6" r="7" fill="var(--critical)"/>
+      <text class="dlabel" x="783.3" y="98.6" text-anchor="middle" fill="var(--critical)">Apr $105</text>
+      <circle class="mk" cx="720.0" cy="70.6" r="7" fill="var(--critical)"/>
+      <text class="dlabel" x="720.0" y="55.599999999999994" text-anchor="middle" fill="var(--critical)">May $139</text>
+      <circle class="mk" cx="571.5" cy="49.7" r="7" fill="var(--critical)"/>
+      <text class="dlabel" x="571.5" y="34.7" text-anchor="middle" fill="var(--critical)">Jun $155</text>
+      <circle class="mk" cx="255.6" cy="151.0" r="7" fill="var(--good)"/>
+      <text class="dlabel" x="242.6" y="139.0" text-anchor="end" fill="var(--good)">Jul $77</text>
+      <circle class="mk" cx="333.8" cy="144.7" r="7" fill="var(--good)"/>
+      <text class="dlabel" x="333.8" y="129.7" text-anchor="middle" fill="var(--good)">Aug $81</text>
+    </svg>
+  </div>
+  <div class="caveats reveal">
+    <span class="caveat">WhatConverts unique leads, campaign 23419200228</span>
+    <span class="caveat">No Google conversion data used</span>
+    <span class="caveat">Jan and Feb carry New Year demand</span>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide slide--table">
+  <p class="slide__label reveal">Where these numbers come from</p>
+  <h2 class="slide__heading reveal" style="margin-bottom:14px;">Every number here is from WhatConverts. Nothing from Google.</h2>
+  <div class="causebox reveal" style="grid-template-columns:auto 1fr;">
+    <div class="causebig" style="color:var(--good);">100%<small>your own lead system</small></div>
+    <div>
+      <p class="slide__body" style="font-size:clamp(15px,1.9vw,21px);max-width:60ch;">Lead counts, cost per lead and conversion rate on the previous slide are all taken straight from <b>your WhatConverts account</b>, for this campaign, counting <b>unique leads only</b>. Not one figure comes from Google's conversion tracking.</p>
+    </div>
+  </div>
+  <div class="chiprow reveal">
+    <div class="chipcard" style="border-color:var(--good);"><b>Source</b><span>WhatConverts account 81543</span><em>The system your team already works in every day</em></div>
+    <div class="chipcard" style="border-color:var(--good);"><b>Scope</b><span>Campaign 23419200228</span><em>Core Cities therapy, January to August 2026</em></div>
+    <div class="chipcard" style="border-color:var(--good);"><b>Counted</b><span>Unique leads only</span><em>Repeat contacts from the same patient are excluded</em></div>
+    <div class="chipcard" style="border-color:var(--accent);"><b>Check it yourself</b><span>Every figure is in your dashboard</span><em>Nothing here needs you to trust Google, or us</em></div>
+  </div>
+  <div class="caveats reveal">
+    <span class="caveat">Google's own count for March and April exceeded the leads WhatConverts holds, so we stopped using it</span>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide slide--table slide--with-grid">
+  <p class="slide__label reveal">The mechanism</p>
+  <h2 class="slide__heading reveal" style="margin-bottom:12px;">No cost target, so budget bought width.</h2>
+  <div class="reveal">
+    <div class="mktbars">
+      <div class="mktrow"><span class="lbl">20 Jul</span><span class="track"><span class="fill" style="width:86.9%;background:#b3b0aa;"></span></span><span class="val">87% budget</span></div>
+      <div class="mktrow"><span class="lbl">27 Jul</span><span class="track"><span class="fill" style="width:81.4%;background:#b3b0aa;"></span></span><span class="val">81% budget</span></div>
+      <div class="mktrow"><span class="lbl">10 Aug</span><span class="track"><span class="fill" style="width:70.0%;background:var(--critical);"></span></span><span class="val">70% rank</span></div>
+      <div class="mktrow"><span class="lbl">24 Aug</span><span class="track"><span class="fill" style="width:76.5%;background:var(--critical);"></span></span><span class="val">77% rank</span></div>
+    </div>
+    <p class="mktcap">Grey is impressions we missed on money. Red is impressions we missed on relevance.</p>
+  </div>
+  <div class="chiprow reveal">
+    <div class="chipcard"><b>Impression share</b><span>Held at 10% every week</span><em>More budget bought no more of the market</em></div>
+    <div class="chipcard" style="border-color:var(--critical);"><b>Cost per click fell</b><span>$5.88 &rarr; $5.64</span><em>It should rise when you buy more of the same searches</em></div>
+    <div class="chipcard" style="border-color:var(--critical);"><b>2,180 new searches</b><span>39% of spend since 17 Aug</span><em>Terms the account had never seen</em></div>
+    <div class="chipcard" style="border-color:var(--accent);"><b>Bidding today</b><span>Maximise Conversions, no target</span><em>&ldquo;Spend it all&rdquo; with no price limit</em></div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide slide--table">
+  <p class="slide__label reveal" style="color:var(--good);">Monday</p>
+  <h2 class="slide__heading reveal" style="margin-bottom:12px;">Three changes. One campaign.</h2>
+  <div class="sp-grid reveal">
+    <div class="sp-col sp-col--own">
+      <p class="sp-kicker" style="color:var(--accent);">The two that matter</p>
+      <p class="sp-name">Put a price on it</p>
+      <ul class="sp-facts">
+        <li><b>Target CPA</b><span><b>$85.</b> August already delivered $81. This is the lever that stops budget widening the net.</span></li>
+        <li><b>Budget</b><span class="good"><b>$350 a day.</b> The zone that produced $60 to $81 a lead.</span></li>
+      </ul>
+    </div>
+    <div class="sp-col" style="border-top:3px solid var(--good);">
+      <p class="sp-kicker" style="color:var(--good);">One list to add</p>
+      <p class="sp-name">Negative keywords</p>
+      <ul class="sp-facts">
+        <li><b>Rivals</b><span><b>24 names.</b> Geode, LifeStance, Thriveworks, BetterHelp, Headway, Psychology Today, Metrocare, Therapath and the rest.</span></li>
+        <li><b>Outside Texas</b><span><b>32 places.</b> Baton Rouge, New Orleans, Phoenix, Denver, Nashville, Miami and other cities we do not serve.</span></li>
+      </ul>
+      <div><span class="sp-chip">San Antonio stays &middot; it is a served city</span></div>
+    </div>
+  </div>
+  <div class="chiprow reveal">
+    <div class="chipcard" style="border-color:var(--good);"><b>What good looks like</b><span>$60 to $85 a lead</span><em>Judged on WhatConverts unique leads, read at day 30</em></div>
+    <div class="chipcard" style="border-color:var(--accent);"><b>What we are not doing</b><span>No new campaigns. No restructure.</span><em>Nothing to cross-contaminate</em></div>
+    <div class="chipcard" style="border-color:var(--critical);"><b>The trade to accept</b><span>This campaign has a ceiling</span><em>More spend buys worse leads, not more of them</em></div>
+  </div>
+  <div class="caveats reveal">
+    <span class="caveat">The negatives save about $114 a month and remove 39 unservable enquiries a year</span>
+    <span class="caveat">Prepared by Will Arnett &middot; Digital Will Ads &middot; 30 August 2026</span>
+  </div>
+</section>
+</div>
+<script>
+(function(){
+  %s
+  function init(){
+    var svg=document.querySelector('.viz svg'); if(!svg)return;
+    var hit=document.getElementById('hit'),hl=document.getElementById('hl'),m1=document.getElementById('hm1'),
+        m2=document.getElementById('hm2'),tip=document.getElementById('tip'),wrap=document.querySelector('.viz');
+    function move(ev){
+      var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,ux=(ev.clientX-r.left)/r.width*vb.width,b=0,bd=1e9;
+      for(var i=0;i<P.length;i++){var d=Math.abs(P[i].x-ux); if(d<bd){bd=d;b=i;}}
+      var p=P[b],n=N[b];
+      hl.setAttribute('x1',p.x);hl.setAttribute('x2',p.x);hl.style.opacity=1;
+      if(p.v===null){m1.style.opacity=0;}
+      else{m1.setAttribute('cx',p.x);m1.setAttribute('cy',p.y1);m1.style.opacity=1;}
+      m2.setAttribute('cx',p.x);m2.setAttribute('cy',n.y2);m2.style.opacity=1;
+      tip.innerHTML='<b>By day '+p.d+'</b>'+
+        '<div class="r"><i style="background:var(--s1)"></i>What converts<span class="v">'+(p.v===null?'window shut':p.v+'%')+'</span></div>'+
+        '<div class="r"><i style="background:var(--s2)"></i>Lead Form<span class="v">'+n.v+'%</span></div>';
+      tip.style.opacity=1;
+      var py=(p.v===null?p.y1:p.y1)/vb.height*r.height,px=p.x/vb.width*r.width,wr=wrap.getBoundingClientRect();
+      var lf=px+(r.left-wr.left)+16,tp=py+(r.top-wr.top)-10;
+      if(lf+tip.offsetWidth>wr.width)lf=px+(r.left-wr.left)-tip.offsetWidth-16;
+      tip.style.left=Math.max(0,lf)+'px';tip.style.top=Math.max(0,tp)+'px';
+    }
+    hit.addEventListener('mousemove',move);
+    hit.addEventListener('mouseleave',function(){hl.style.opacity=0;m1.style.opacity=0;m2.style.opacity=0;tip.style.opacity=0;});
+  }
+  if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
+<script>
+  /* ============ DECK ENGINE ============ */
+  function SlideEngine() {
+    var deck = document.querySelector('.deck');
+    var slides = [].slice.call(document.querySelectorAll('.slide'));
+    var current = 0, total = slides.length;
+
+    var bar = document.createElement('div');
+    bar.className = 'deck-progress';
+    document.body.appendChild(bar);
+
+    var dots = document.createElement('div');
+    dots.className = 'deck-dots';
+    slides.forEach(function(_, i) {
+      var d = document.createElement('button');
+      d.className = 'deck-dot';
+      d.title = 'Slide ' + (i + 1);
+      d.onclick = function() { goTo(i); };
+      dots.appendChild(d);
+    });
+    document.body.appendChild(dots);
+    var dotEls = [].slice.call(dots.children);
+
+    var ctr = document.createElement('div');
+    ctr.className = 'deck-counter';
+    document.body.appendChild(ctr);
+
+    var hints = document.createElement('div');
+    hints.className = 'deck-hints';
+    hints.textContent = '← → or scroll to navigate';
+    document.body.appendChild(hints);
+    var hintTimer = setTimeout(function() { hints.classList.add('faded'); }, 4000);
+    function fadeHints() { clearTimeout(hintTimer); hints.classList.add('faded'); }
+
+    function update() {
+      bar.style.width = ((current + 1) / total * 100) + '%';
+      dotEls.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+      ctr.textContent = (current + 1) + ' / ' + total;
+    }
+    function goTo(i) {
+      slides[Math.max(0, Math.min(i, total - 1))].scrollIntoView({ behavior: 'smooth' });
+    }
+    function next() { if (current < total - 1) goTo(current + 1); }
+    function prev() { if (current > 0) goTo(current - 1); }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.target.closest('.table-scroll, input, textarea, [contenteditable]')) return;
+      if (['ArrowDown', 'ArrowRight', ' ', 'PageDown'].indexOf(e.key) >= 0) { e.preventDefault(); next(); }
+      else if (['ArrowUp', 'ArrowLeft', 'PageUp'].indexOf(e.key) >= 0) { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(total - 1); }
+      fadeHints();
+    });
+
+    var touchY;
+    deck.addEventListener('touchstart', function(e) { touchY = e.touches[0].clientY; }, { passive: true });
+    deck.addEventListener('touchend', function(e) {
+      var dy = touchY - e.changedTouches[0].clientY;
+      if (Math.abs(dy) > 50) { dy > 0 ? next() : prev(); }
+    });
+
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          current = slides.indexOf(entry.target);
+          update();
+        }
+      });
+    }, { threshold: 0.5 });
+    slides.forEach(function(s) { obs.observe(s); });
+
+    update();
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    SlideEngine();
+    /* deep link: #s3 opens slide 3 */
+    var hm = location.hash.match(/^#s(\d+)$/);
+    if (hm) {
+      var deck = document.querySelector('.deck');
+      var slides = document.querySelectorAll('.slide');
+      var idx = Math.max(0, Math.min(parseInt(hm[1], 10) - 1, slides.length - 1));
+      slides.forEach(function(s) { s.classList.add('visible'); });
+      deck.style.scrollBehavior = 'auto';
+      deck.scrollTop = slides[idx].offsetTop;
+      requestAnimationFrame(function() { deck.style.scrollBehavior = ''; });
+    }
+  });
+</script>
+
+</body>
+</html>
